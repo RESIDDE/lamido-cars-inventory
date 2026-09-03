@@ -1,41 +1,32 @@
 // ─── Role & Page Definitions ────────────────────────────────────────────────
 
-export type AppRole = "super_admin" | "admin" | "sales" | "mechanic";
+export type AppRole = "admin" | "sales" | "mechanic";
 
 export type PageKey =
   | "dashboard"
   | "vehicles"
-  | "resale-vehicles"
   | "customers"
   | "sales"
   | "invoices"
   | "inquiries"
-  | "inspections"
-  | "repairs"
   | "authority-to-sell"
-  | "performance-quotes"
-  | "documents";
+  | "performance-quotes";
 
 export const ALL_PAGES: { key: PageKey; label: string; path: string }[] = [
   { key: "dashboard",          label: "Dashboard",       path: "/dashboard" },
-  { key: "vehicles",           label: "Beetee Vehicles", path: "/vehicles" },
-  { key: "resale-vehicles",    label: "Resale Vehicles", path: "/resale-vehicles" },
+  { key: "vehicles",           label: "Lamido Vehicles", path: "/vehicles" },
   { key: "customers",          label: "Customers",       path: "/customers" },
   { key: "sales",              label: "Sales",           path: "/sales" },
   { key: "invoices",           label: "Invoices",        path: "/invoices" },
   { key: "inquiries",          label: "Inquiries",       path: "/inquiries" },
-  { key: "inspections",        label: "Inspections",     path: "/inspections" },
-  { key: "repairs",            label: "Repairs",         path: "/repairs" },
   { key: "authority-to-sell",  label: "Auth. Form",      path: "/authority-to-sell" },
   { key: "performance-quotes", label: "Proforma Quotes", path: "/performance-quotes" },
-  { key: "documents",          label: "Documents",       path: "/documents" },
 ];
 
-// super_admin can always see everything — not configurable
-export const SUPER_ADMIN_PAGES: PageKey[] = ALL_PAGES.map((p) => p.key);
+export const ADMIN_PAGES: PageKey[] = ALL_PAGES.map((p) => p.key);
 
 export type PermissionsMap = Record<
-  Exclude<AppRole, "super_admin">,
+  AppRole,
   { view: PageKey[]; create: PageKey[]; edit: PageKey[] }
 >;
 
@@ -46,14 +37,14 @@ export const DEFAULT_PERMISSIONS: PermissionsMap = {
     edit: ALL_PAGES.map((p) => p.key),
   },
   sales: {
-    view: ["dashboard", "vehicles", "resale-vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "documents"],
-    create: ["vehicles", "resale-vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "documents"],
-    edit: ["vehicles", "resale-vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "documents"],
+    view: ["dashboard", "vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell"],
+    create: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell"],
+    edit: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell"],
   },
   mechanic: {
-    view: ["dashboard", "vehicles", "resale-vehicles", "repairs", "inspections"],
-    create: ["vehicles", "resale-vehicles", "repairs", "inspections"],
-    edit: ["vehicles", "resale-vehicles", "repairs", "inspections"],
+    view: ["dashboard", "vehicles"],
+    create: ["vehicles"],
+    edit: ["vehicles"],
   },
 };
 
@@ -70,9 +61,7 @@ export function canAccess(
   page: PageKey,
   permissions: PermissionsMap = DEFAULT_PERMISSIONS
 ): boolean {
-  if (!role) return false; // Pending users blocked
-  if (role === "super_admin") return true;
-  return (permissions[role as Exclude<AppRole, "super_admin">]?.view ?? []).includes(page);
+  return true; // All users have full access
 }
 
 /**
@@ -85,11 +74,7 @@ export function canCreate(
   page: PageKey,
   permissions: PermissionsMap = DEFAULT_PERMISSIONS
 ): boolean {
-  if (!role) return false; // Pending users blocked
-  if (role === "super_admin") return true;
-  const rolePerms = permissions[role as Exclude<AppRole, "super_admin">];
-  if (!rolePerms) return false;
-  return (rolePerms.create ?? []).includes(page);
+  return true; // All users have full access
 }
 
 /**
@@ -102,9 +87,7 @@ export function canEdit(
   page: PageKey,
   permissions: PermissionsMap = DEFAULT_PERMISSIONS
 ): boolean {
-  if (!role) return false; // Pending users blocked
-  if (role === "super_admin") return true;
-  return (permissions[role as Exclude<AppRole, "super_admin">]?.edit ?? []).includes(page);
+  return true; // All users have full access
 }
 
 /**
@@ -116,7 +99,5 @@ export function getAccessiblePages(
   role: AppRole | null,
   permissions: PermissionsMap = DEFAULT_PERMISSIONS
 ): PageKey[] {
-  if (!role) return []; // Pending users see nothing
-  if (role === "super_admin") return SUPER_ADMIN_PAGES;
-  return permissions[role as Exclude<AppRole, "super_admin">]?.view ?? [];
+  return ADMIN_PAGES; // All users see all pages
 }

@@ -27,9 +27,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 bg-background sm:rounded-l-[2rem] sm:border-l sm:border-y sm:my-2 sm:mr-2 shadow-2xl relative overflow-hidden transition-all duration-300">
           <header className="sticky top-0 z-30 h-16 flex items-center border-b border-border/40 bg-background/40 backdrop-blur-xl px-4 sm:px-6 gap-2 print:hidden">
             <SidebarTrigger className="mr-2 -ml-2 rounded-full hover:bg-primary/10 transition-colors" />
-            <img src={logo} alt="Beetee Autos logo" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
+            <img src={logo} alt="Lamido Cars logo" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
             <span className="text-sm sm:text-lg font-heading font-semibold tracking-tight text-foreground truncate flex-1 uppercase tracking-widest">
-              BEETEE
+              Lamido
             </span>
 
             {/* User info + Logout */}

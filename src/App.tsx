@@ -16,21 +16,15 @@ const Auth = lazy(() => import("./pages/Auth"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const VehiclesList = lazy(() => import("./pages/VehiclesList"));
-const ResaleVehicles = lazy(() => import("./pages/ResaleVehicles"));
 const VehicleForm = lazy(() => import("./pages/VehicleForm"));
 const VehicleDetail = lazy(() => import("./pages/VehicleDetail"));
 const Customers = lazy(() => import("./pages/Customers"));
 const Sales = lazy(() => import("./pages/Sales"));
 const Invoices = lazy(() => import("./pages/Invoices"));
 const Inquiries = lazy(() => import("./pages/Inquiries"));
-const Inspections = lazy(() => import("./pages/Inspections"));
-const RepairsMaintenance = lazy(() => import("./pages/RepairsMaintenance"));
 const AuthorityToSell = lazy(() => import("./pages/AuthorityToSell"));
 const PerformanceQuotes = lazy(() => import("./pages/PerformanceQuotes"));
-const Documents = lazy(() => import("./pages/Documents"));
-const SignRepair = lazy(() => import("./pages/SignRepair"));
 const SignCustomer = lazy(() => import("./pages/SignCustomer"));
-const SignInspection = lazy(() => import("./pages/SignInspection"));
 const SignSale = lazy(() => import("./pages/SignSale"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const CustomerPortal = lazy(() => import("./pages/CustomerPortal"));
@@ -85,9 +79,7 @@ function AppRoutes() {
       {/* Public pages */}
       <Route path="/auth"                element={<GuestGuard><Auth /></GuestGuard>} />
       <Route path="/portal"              element={<CustomerPortal />} />
-      <Route path="/sign/repair/:id"     element={<SignRepair />} />
       <Route path="/sign/customer/:id"   element={<SignCustomer />} />
-      <Route path="/sign/inspection/:id" element={<SignInspection />} />
       <Route path="/sign/sale/:id"       element={<SignSale />} />
 
       {/* Protected pages — inside AuthGuard + AppLayout */}
@@ -99,23 +91,16 @@ function AppRoutes() {
                 <Route path="/dashboard"         element={<Index />} />
                 <Route path="/profile"           element={<Profile />} />
                 <Route path="/vehicles"          element={<RoleGuard page="vehicles"><VehiclesList /></RoleGuard>} />
-                <Route path="/resale-vehicles"   element={<RoleGuard page="resale-vehicles"><ResaleVehicles /></RoleGuard>} />
                 <Route path="/vehicles/new"      element={<RoleGuard page="vehicles"><VehicleForm /></RoleGuard>} />
                 <Route path="/vehicles/:id"      element={<RoleGuard page="vehicles"><VehicleDetail /></RoleGuard>} />
                 <Route path="/vehicles/:id/edit" element={<RoleGuard page="vehicles"><VehicleForm /></RoleGuard>} />
-                <Route path="/resale-vehicles/new"      element={<RoleGuard page="resale-vehicles"><VehicleForm /></RoleGuard>} />
-                <Route path="/resale-vehicles/:id"      element={<RoleGuard page="resale-vehicles"><VehicleDetail /></RoleGuard>} />
-                <Route path="/resale-vehicles/:id/edit" element={<RoleGuard page="resale-vehicles"><VehicleForm /></RoleGuard>} />
                 <Route path="/source-company/:name" element={<RoleGuard page="vehicles"><SourceCompanyDetails /></RoleGuard>} />
                 <Route path="/customers"         element={<RoleGuard page="customers"><Customers /></RoleGuard>} />
                 <Route path="/sales"             element={<RoleGuard page="sales"><Sales /></RoleGuard>} />
                 <Route path="/invoices"          element={<RoleGuard page="invoices"><Invoices /></RoleGuard>} />
                 <Route path="/inquiries"         element={<RoleGuard page="inquiries"><Inquiries /></RoleGuard>} />
-                <Route path="/inspections"       element={<RoleGuard page="inspections"><Inspections /></RoleGuard>} />
-                <Route path="/repairs"           element={<RoleGuard page="repairs"><RepairsMaintenance /></RoleGuard>} />
                 <Route path="/authority-to-sell" element={<RoleGuard page="authority-to-sell"><AuthorityToSell /></RoleGuard>} />
                 <Route path="/performance-quotes" element={<RoleGuard page="performance-quotes"><PerformanceQuotes /></RoleGuard>} />
-                <Route path="/documents"          element={<RoleGuard page="documents"><Documents /></RoleGuard>} />
                 {/* Settings — only super_admin can see; RoleGuard handled internally */}
                 <Route path="/settings"          element={<Settings />} />
                 <Route path="/unauthorized"      element={<Unauthorized />} />

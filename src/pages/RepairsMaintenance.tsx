@@ -47,13 +47,13 @@ import { numberToWords } from "@/lib/numberToWords";
 
 const BANK_ACCOUNTS = {
   servicing: {
-    name: "BEE TEE AUTOMOBILE-SERVICES",
+    name: "Lamido CarsMOBILE-SERVICES",
     account: "1229785752",
     bank: "Zenith Bank",
     label: "Servicing Account"
   },
   painting: {
-    name: "BEE TEE AUTOMOBILE-SERVICES",
+    name: "Lamido CarsMOBILE-SERVICES",
     account: "0126589674",
     bank: "Wema Bank",
     label: "Painting Services Account"
@@ -1125,7 +1125,7 @@ export default function RepairsMaintenance() {
       </div>
     </div>
 
-    <div class="footer-note">Thank you for choosing Bee Tee Autoshop. We appreciate your business!</div>
+    <div class="footer-note">Thank you for choosing Lamido Carshop. We appreciate your business!</div>
     </body></html>`;
   };
 
@@ -1396,8 +1396,8 @@ export default function RepairsMaintenance() {
         logAction("EXPORT", type === 'bill' ? "Repair Bill" : "Job Card", r.id, { vehicle: vehicleLabel, format: "PDF", method: "Email" });
         
         if (cust?.email) {
-          const subject = `${type === 'bill' ? 'Repair Bill' : 'Job Card'} - Beetee Autos`;
-          const body = `Hello ${cust.name || 'Customer'},\n\nPlease find your ${type === 'bill' ? 'repair bill' : 'job card'} attached below.\n\nYou can also download it directly here: ${publicUrl}\n\nThank you for choosing Beetee Autos!`;
+          const subject = `${type === 'bill' ? 'Repair Bill' : 'Job Card'} - Lamido Cars`;
+          const body = `Hello ${cust.name || 'Customer'},\n\nPlease find your ${type === 'bill' ? 'repair bill' : 'job card'} attached below.\n\nYou can also download it directly here: ${publicUrl}\n\nThank you for choosing Lamido Cars!`;
           window.location.href = `mailto:${cust.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
           toast.success("Link generated! Opening email client...", { id: "repair-dl" });
         } else {

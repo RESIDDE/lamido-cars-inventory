@@ -148,7 +148,7 @@ export default function Dashboard() {
   const [companySearch, setCompanySearch] = useState("");
   const [greeting, setGreeting] = useState("Welcome back");
 
-  const isAdmin = role === 'super_admin' || role === 'admin';
+  const isAdmin = role === "admin" || role === 'admin';
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -160,7 +160,7 @@ export default function Dashboard() {
   const { data: vehicles = [], isLoading: loadingV } = useQuery({
     queryKey: ["dash-vehicles"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("vehicles").select("*").eq("inventory_type", "beetee");
+      const { data, error } = await supabase.from("vehicles").select("*").eq("inventory_type", "Lamido");
       if (error) {
         toast.error("Vehicles query failed: " + error.message);
         throw error;
@@ -570,7 +570,7 @@ export default function Dashboard() {
               <Link to="/vehicles" className="bento-card p-5 group flex flex-col">
                 <div className="p-2.5 bg-sky-500/10 w-fit rounded-xl group-hover:bg-sky-500/20 transition-colors mb-3"><Car className="h-5 w-5 text-sky-500" /></div>
                 <h3 className="text-2xl font-bold">{vehicles.length}</h3>
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Beetee Stock</p>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Lamido Stock</p>
               </Link>
               <Link to="/resale-vehicles" className="bento-card p-5 group flex flex-col">
                 <div className="p-2.5 bg-orange-500/10 w-fit rounded-xl group-hover:bg-orange-500/20 transition-colors mb-3"><Car className="h-5 w-5 text-orange-500" /></div>

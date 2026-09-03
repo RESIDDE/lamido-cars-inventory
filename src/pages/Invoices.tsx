@@ -348,7 +348,7 @@ export default function Invoices() {
 
         <div class="bank-details">
           <h4>BANK DETAILS:</h4>
-          <p>Account name: <strong>BEE TEE AUTOMOBILE -SERVICES</strong></p>
+          <p>Account name: <strong>Lamido CarsMOBILE -SERVICES</strong></p>
           <p>Account Number: <strong>1229785752</strong></p>
           <p>Bank: <strong>ZENITH BANK</strong></p>
         </div>
@@ -438,8 +438,8 @@ export default function Invoices() {
         document.body.removeChild(iframe);
         
         if (cust?.email) {
-          const subject = `Invoice ${inv.invoice_number} - Beetee Autos`;
-          const body = `Hello ${cust.name || 'Customer'},\n\nPlease find your invoice attached below.\n\nYou can also download it directly here: ${publicUrl}\n\nThank you for choosing Beetee Autos!`;
+          const subject = `Invoice ${inv.invoice_number} - Lamido Cars`;
+          const body = `Hello ${cust.name || 'Customer'},\n\nPlease find your invoice attached below.\n\nYou can also download it directly here: ${publicUrl}\n\nThank you for choosing Lamido Cars!`;
           window.location.href = `mailto:${cust.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
           toast.success("Link generated! Opening email client...", { id: "invoice-dl" });
         } else {

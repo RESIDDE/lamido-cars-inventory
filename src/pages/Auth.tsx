@@ -71,10 +71,10 @@ export default function Auth() {
 
         <div className="relative z-10 max-w-md text-center">
           <div className="inline-flex p-4 rounded-3xl bg-amber-500/10 border border-amber-500/20 mb-8 shadow-2xl shadow-amber-500/20">
-            <img src={logo} alt="Beetee Autos" className="w-20 h-20 rounded-2xl object-cover shadow-lg" />
+            <img src={logo} alt="Lamido Cars" className="w-20 h-20 rounded-2xl object-cover shadow-lg" />
           </div>
           <h1 className="text-5xl font-extrabold text-white tracking-tight mb-4 leading-tight">
-            Beetee<br />
+            Lamido<br />
             <span className="text-amber-400">Autos</span> CRM
           </h1>
           <p className="text-white/50 text-lg leading-relaxed">
@@ -105,9 +105,9 @@ export default function Auth() {
         <div className="w-full max-w-md relative z-10 animate-fade-up">
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-3 mb-8">
-            <img src={logo} alt="Beetee Autos" className="w-10 h-10 rounded-xl object-cover border border-border/50 shadow" />
+            <img src={logo} alt="Lamido Cars" className="w-10 h-10 rounded-xl object-cover border border-border/50 shadow" />
             <div>
-              <h1 className="text-xl font-extrabold text-foreground">Beetee Autos</h1>
+              <h1 className="text-xl font-extrabold text-foreground">Lamido Cars</h1>
               <p className="text-xs text-muted-foreground">Dealership Management</p>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function Auth() {
             <p className="text-muted-foreground mt-2 text-sm">
               {mode === "login"
                 ? "Sign in to access the admin dashboard."
-                : "Register to get started with Beetee Autos."}
+                : "Register to get started with Lamido Cars."}
             </p>
           </div>
 
@@ -149,7 +149,7 @@ export default function Auth() {
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     required type="email"
-                    placeholder="admin@beeteeautos.com"
+                    placeholder="admin@Lamidoautos.com"
                     className="pl-10 h-12 rounded-xl bg-foreground/5 border-foreground/10 focus-visible:ring-amber-500 font-medium"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -218,7 +218,7 @@ export default function Auth() {
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    required type="email" placeholder="john@beeteeautos.com"
+                    required type="email" placeholder="john@Lamidoautos.com"
                     className="pl-10 h-12 rounded-xl bg-foreground/5 border-foreground/10 focus-visible:ring-amber-500 font-medium"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -253,7 +253,7 @@ export default function Auth() {
 
               <p className="text-xs text-center text-muted-foreground">
                 🔒 Access is managed by your administrator. <br />
-                Contact Beetee Autos IT if you're having trouble.
+                Contact Lamido Cars IT if you're having trouble.
               </p>
             </form>
           )}

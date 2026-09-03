@@ -412,7 +412,7 @@ export default function PerformanceQuotes() {
         await supabase.from("performance_quotes" as any).update({ quote_url: publicUrl }).eq("id", quote.id);
 
         if (quote.customers?.email) {
-          const subject = `Proforma Quote - Beetee Autos`;
+          const subject = `Proforma Quote - Lamido Cars`;
           const body = `Hello ${quote.customers.name},\n\nPlease find your proforma quote attached.\n\nDownload here: ${publicUrl}\n\nThank you!`;
           window.location.href = `mailto:${quote.customers.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
           toast.success("Quote generated and email ready!", { id: "quote-dl" });

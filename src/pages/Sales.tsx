@@ -418,7 +418,7 @@ export default function Sales() {
       notes: s.notes || "",
     }));
     logAction("PRINT", "Sales List", "bulk", { count: rows.length });
-    printTable("Sales Report — Beetee Autos", rows, [
+    printTable("Sales Report — Lamido Cars", rows, [
       { key: "vehicle", label: "Vehicle" },
       { key: "customer", label: "Customer" },
       { key: "sale_price", label: "Sale Price" },
@@ -505,7 +505,7 @@ export default function Sales() {
             </div>
             <div class="sig-box">
                ${sale.rep_signature ? `<img src="${sale.rep_signature}" class="signature-img" />` : '<div style="height:40px"></div>'}
-              <p style="border-top: 1px solid #1a1a1a; padding-top: 4px; margin-top: 0;"><strong>FOR: BEE TEE AUTOMOBILE</strong></p>
+              <p style="border-top: 1px solid #1a1a1a; padding-top: 4px; margin-top: 0;"><strong>FOR: Lamido CarsMOBILE</strong></p>
             </div>
           </div>
         </div>
@@ -651,7 +651,7 @@ export default function Sales() {
           </div>
           <div class="sig-box">
             ${sale.rep_signature ? `<img src="${sale.rep_signature}" class="signature-img" />` : '<div style="height:45px"></div>'}
-            <p style="border-top: 1px solid #1a1a1a; padding-top: 5px;"><strong>FOR: BEE TEE AUTOMOBILE</strong></p>
+            <p style="border-top: 1px solid #1a1a1a; padding-top: 5px;"><strong>FOR: Lamido CarsMOBILE</strong></p>
           </div>
         </div>
       </div>
@@ -816,8 +816,8 @@ export default function Sales() {
         await supabase.from("sales" as any).update({ receipt_url: publicUrl }).eq("id", sale.id);
 
         if (cust?.email) {
-          const subject = `Sales Receipt - Beetee Autos`;
-          const body = `Hello ${cust.name || 'Customer'},\n\nPlease find your sales receipt attached below.\n\nYou can also download it directly here: ${publicUrl}\n\nThank you for choosing Beetee Autos!`;
+          const subject = `Sales Receipt - Lamido Cars`;
+          const body = `Hello ${cust.name || 'Customer'},\n\nPlease find your sales receipt attached below.\n\nYou can also download it directly here: ${publicUrl}\n\nThank you for choosing Lamido Cars!`;
           window.location.href = `mailto:${cust.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
           toast.success("Link generated! Opening email client...", { id: "sale-dl" });
         } else {

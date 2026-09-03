@@ -33,7 +33,7 @@ import { logAction, describeLog } from "@/lib/logger";
 type Tab = "team" | "permissions" | "audit" | "system";
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  super_admin: { label: "Super Admin", color: "text-amber-400", icon: <Crown className="w-3.5 h-3.5" /> },
+  admin: { label: "Super Admin", color: "text-amber-400", icon: <Crown className="w-3.5 h-3.5" /> },
   admin: { label: "Admin", color: "text-emerald-500", icon: <ShieldCheck className="w-3.5 h-3.5" /> },
   sales: { label: "Sales", color: "text-blue-400", icon: <User className="w-3.5 h-3.5" /> },
   mechanic: { label: "Mechanic", color: "text-violet-400", icon: <Settings2 className="w-3.5 h-3.5" /> },
@@ -104,7 +104,7 @@ export default function Settings() {
   const [serviceIntervalDays, setServiceIntervalDays] = useState<string>("0");
   const [intervalSaving, setIntervalSaving] = useState(false);
 
-  if (role !== "super_admin") {
+  if (role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4 animate-fade-up">
         <Lock className="w-12 h-12 text-muted-foreground/30" />
@@ -246,7 +246,7 @@ export default function Settings() {
       if (error) throw error;
       return data;
     },
-    enabled: role === "super_admin" && tab === "audit",
+    enabled: role === "admin" && tab === "audit",
   });
 
   // ── Update Role Mutation ───────────────────────────────────────────────────
@@ -299,7 +299,7 @@ export default function Settings() {
     if (!user) return toast.error("Not logged in");
     const { error } = await (supabase as any)
       .from("user_roles")
-      .upsert({ user_id: user.id, role: "super_admin" }, { onConflict: "user_id" });
+      .upsert({ user_id: user.id, role: "admin" }, { onConflict: "user_id" });
     if (error) {
       toast.error("Failed: " + error.message);
     } else {
@@ -372,13 +372,13 @@ export default function Settings() {
 
       if (!targetUser || !myEntry) throw new Error("Could not find user records");
 
-      // Elevate target to super_admin
-      await (supabase as any).from("user_roles").update({ role: "super_admin" }).eq("id", targetUser.id);
+      // Elevate target to admin
+      await (supabase as any).from("user_roles").update({ role: "admin" }).eq("id", targetUser.id);
       // Downgrade self
       await (supabase as any).from("user_roles").update({ role: transferDowngradeTo }).eq("id", myEntry.id);
 
       await logAction("ROLE_CHANGE", "user_roles", targetUser.id, {
-        action: "super_admin_transfer",
+        action: "admin_transfer",
         transferred_to: targetUser.profile?.display_name,
         previous_admin_downgraded_to: transferDowngradeTo,
       });
@@ -394,7 +394,7 @@ export default function Settings() {
   };
 
   // ── Permissions helpers ────────────────────────────────────────────────────
-  const togglePerm = (r: Exclude<AppRole, "super_admin">, page: PageKey) => {
+  const togglePerm = (r: AppRole, page: PageKey) => {
     setLocalPermissions((prev) => {
       const base = prev ?? livePermissions;
       const currentView = base[r]?.view ?? [];
@@ -490,7 +490,7 @@ export default function Settings() {
     }
   };
 
-  const configurableRoles: Exclude<AppRole, "super_admin">[] = ["admin", "sales", "mechanic"];
+  const configurableRoles: AppRole[] = ["admin", "sales", "mechanic"];
   const otherUsers = usersData.filter((u: any) => u.user_id !== user?.id);
 
   return (
@@ -753,7 +753,7 @@ export default function Settings() {
                       <Select
                         value={u.role}
                         onValueChange={(val) => {
-                          if (isSelf && val !== "super_admin") {
+                          if (isSelf && val !== "admin") {
                             if (!window.confirm("⚠️ Warning: Removing your own Super Admin role will lock you out of this page. Proceed?")) return;
                           }
                           updateRole.mutate({ userId: u.user_id, newRole: val, targetName: profile?.display_name });
@@ -765,7 +765,7 @@ export default function Settings() {
                         </SelectTrigger>
                         <SelectContent className="glass-panel font-medium rounded-xl">
                           <SelectItem value="pending" className="rounded-lg text-rose-400 italic">Pending Approval</SelectItem>
-                          <SelectItem value="super_admin" className="rounded-lg font-bold text-amber-400">⭐ Super Admin</SelectItem>
+                          
                           <SelectItem value="admin" className="rounded-lg font-bold text-emerald-500">Admin</SelectItem>
                           <SelectItem value="sales" className="rounded-lg text-blue-400">Sales</SelectItem>
                           <SelectItem value="mechanic" className="rounded-lg text-violet-400">Mechanic</SelectItem>

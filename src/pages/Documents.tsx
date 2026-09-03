@@ -43,7 +43,7 @@ const TEMPLATES = [
         This Vehicle Sales Agreement (the "Agreement") is entered into this <strong><u>[DAY]</u></strong> day of <strong><u>[MONTH]</u></strong>, <strong><u>[YEAR]</u></strong>, by and between:
       </p>
       <p style="margin-bottom: 8px;">
-        <strong>SELLER:</strong> BEE TEE AUTOMOBILE, located at Plot 36A &amp; 36B Wole Soyinka way, Cadastral zone B15, Jahi, Abuja.
+        <strong>SELLER:</strong> Lamido CarsMOBILE, located at Plot 36A &amp; 36B Wole Soyinka way, Cadastral zone B15, Jahi, Abuja.
       </p>
       <p style="margin-bottom: 20px;">
         <strong>BUYER:</strong> ____________________________________________________________________
@@ -88,7 +88,7 @@ const TEMPLATES = [
         <tbody>
           <tr style="border: none;">
             <td style="border: none; padding: 12px; width: 45%; vertical-align: top;">
-              <p style="margin-bottom: 40px;">For: <strong>BEE TEE AUTOMOBILE (Seller)</strong></p>
+              <p style="margin-bottom: 40px;">For: <strong>Lamido CarsMOBILE (Seller)</strong></p>
               <div style="border-top: 1px solid #000; padding-top: 4px;">
                 Authorized Signature &amp; Stamp<br><span style="font-size: 11px; color: #64748b;">Date: ____ / ____ / ________</span>
               </div>
@@ -113,7 +113,7 @@ const TEMPLATES = [
     content: `
       <h1 style="text-align: center; color: #1e293b; margin-bottom: 24px;">AUTHORITY TO SELL AGREEMENT</h1>
       <p style="text-align: justify; margin-bottom: 16px;">
-        I, the undersigned owner, hereby authorize <strong>BEE TEE AUTOMOBILE</strong> (the "Agent") to display, advertise, and sell the vehicle described below on my behalf.
+        I, the undersigned owner, hereby authorize <strong>Lamido CarsMOBILE</strong> (the "Agent") to display, advertise, and sell the vehicle described below on my behalf.
       </p>
       <h2 style="color: #334155; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">1. OWNER INFORMATION</h2>
       <p style="margin-bottom: 4px;"><strong>Full Name:</strong> ____________________________________________________________________</p>
@@ -150,7 +150,7 @@ const TEMPLATES = [
         <tbody>
           <tr style="border: none;">
             <td style="border: none; padding: 12px; width: 45%; vertical-align: top;">
-              <p style="margin-bottom: 40px;">For: <strong>BEE TEE AUTOMOBILE (Agent)</strong></p>
+              <p style="margin-bottom: 40px;">For: <strong>Lamido CarsMOBILE (Agent)</strong></p>
               <div style="border-top: 1px solid #000; padding-top: 4px;">Representative Signature</div>
             </td>
             <td style="border: none; width: 10%;"></td>
@@ -178,7 +178,7 @@ const TEMPLATES = [
               <strong>PREPARED FOR:</strong><br>Name: _______________________________<br>Phone: ______________________________<br>Email: ______________________________
             </td>
             <td style="border: none; width: 50%; padding: 4px 0; text-align: right; vertical-align: top;">
-              <strong>VALID UNTIL:</strong> 30 Days from date of issue<br><strong>PREPARED BY:</strong> Beetee Sales Dept.
+              <strong>VALID UNTIL:</strong> 30 Days from date of issue<br><strong>PREPARED BY:</strong> Lamido Sales Dept.
             </td>
           </tr>
         </tbody>
@@ -210,7 +210,7 @@ const TEMPLATES = [
       </table>
       <h2 style="color: #334155; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">BANKING &amp; PAYMENT DETAILS</h2>
       <p style="margin-bottom: 4px;"><strong>Bank Name:</strong> Access Bank Plc</p>
-      <p style="margin-bottom: 4px;"><strong>Account Name:</strong> Bee Tee Automobile Limited</p>
+      <p style="margin-bottom: 4px;"><strong>Account Name:</strong> Lamido Carsmobile Limited</p>
       <p style="margin-bottom: 16px;"><strong>Account Number:</strong> 0077777211</p>`
   },
   {
@@ -225,10 +225,10 @@ const TEMPLATES = [
       <p style="margin-bottom: 20px;">Dear Sir/Ma,</p>
       <p style="margin-bottom: 16px; font-weight: bold; text-decoration: underline; text-transform: uppercase;">SUBJECT: INTRODUCTORY PROPOSAL FOR FLEET MAINTENANCE SERVICES</p>
       <p style="text-align: justify; margin-bottom: 16px;">
-        We write to formally introduce <strong>BEE TEE AUTOMOBILE</strong>, a premier automotive repair, customization, and maintenance workshop situated in Jahi, Abuja.
+        We write to formally introduce <strong>Lamido CarsMOBILE</strong>, a premier automotive repair, customization, and maintenance workshop situated in Jahi, Abuja.
       </p>
       <p style="text-align: justify; margin-bottom: 24px;">We look forward to an opportunity to present a detailed proposal and inspect your fleet. Thank you for your time and consideration.</p>
-      <p style="margin-bottom: 40px;">Yours Faithfully,<br><br><br><strong>Engr. Beatrice T.</strong><br>General Manager, Bee Tee Automobile</p>`
+      <p style="margin-bottom: 40px;">Yours Faithfully,<br><br><br><strong>Engr. Beatrice T.</strong><br>General Manager, Lamido Carsmobile</p>`
   }
 ];
 
@@ -518,7 +518,7 @@ export default function Documents() {
             Start with a Premium Template
           </CardTitle>
           <CardDescription className="text-xs">
-            Generate standard documents in seconds pre-formatted for Bee Tee Autos.
+            Generate standard documents in seconds pre-formatted for Lamido Cars.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6 pt-0">

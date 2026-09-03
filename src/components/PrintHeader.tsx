@@ -8,7 +8,7 @@ export function PrintHeader() {
       <img src={logo} alt="Bee Tee Logo" className="w-[120px] h-[120px] object-contain mr-6" />
       <div className="flex-1 flex flex-col items-start">
         <h1 className="font-black text-[42px] tracking-[-2px] leading-[1.1] uppercase m-0 text-[#1D325F]" style={{ fontFamily: 'Arial Black, sans-serif', fontWeight: 900 }}>
-          BEE TEE AUTOMOBILE
+          Lamido CarsMOBILE
         </h1>
         <div className="w-full text-left space-y-0.5 mt-1">
           <p className="text-[13px] font-bold text-black m-0 leading-tight">
@@ -18,7 +18,7 @@ export function PrintHeader() {
             Tel: <span className="font-normal">09077777211, 09162228881</span>
           </p>
           <p className="text-[13px] font-bold text-black m-0 leading-tight">
-            Email: <span className="font-normal text-[#3682be] italic underline underline-offset-2">beeteeautomobile@gmail.com</span>
+            Email: <span className="font-normal text-[#3682be] italic underline underline-offset-2">Lamidoautomobile@gmail.com</span>
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@ export function getPrintHeaderHTML(base64Logo?: string) {
       <img src="${logoUrl}" style="width: 120px; height: 120px; object-fit: contain; margin-right: 20px;" />
       <div style="flex: 1; display: flex; flex-direction: column; align-items: flex-start; color: ${HEADER_BLUE};">
         <h1 style="font-family: Arial Black, sans-serif; font-weight: 900; font-size: 42px; margin: 0; color: ${HEADER_BLUE}; text-transform: uppercase; letter-spacing: -2px; line-height: 1.1;">
-          BEE TEE AUTOMOBILE
+          Lamido CarsMOBILE
         </h1>
         <div style="margin-top: 4px; width: 100%; text-align: left;">
           <p style="font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; margin: 2px 0; color: #000;">
@@ -44,7 +44,7 @@ export function getPrintHeaderHTML(base64Logo?: string) {
             Tel: <span style="font-weight: normal;">09077777211, 09162228881</span>
           </p>
           <p style="font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; margin: 2px 0; color: #000;">
-            Email: <span style="color: #3682be; text-decoration: underline; font-style: italic; font-weight: normal;">beeteeautomobile@gmail.com</span>
+            Email: <span style="color: #3682be; text-decoration: underline; font-style: italic; font-weight: normal;">Lamidoautomobile@gmail.com</span>
           </p>
         </div>
       </div>

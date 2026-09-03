@@ -15,11 +15,11 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow authenticated users to insert logs" ON public.audit_logs
     FOR INSERT TO authenticated WITH CHECK (true);
 
--- Allow super_admin to view logs
+-- Allow admin to view logs
 CREATE POLICY "Allow super admins to view logs" ON public.audit_logs
     FOR SELECT TO authenticated USING (
       EXISTS (
         SELECT 1 FROM public.user_roles
-        WHERE user_roles.user_id = auth.uid() AND user_roles.role = 'super_admin'
+        WHERE user_roles.user_id = auth.uid() AND user_roles.role = 'admin'
       )
     );

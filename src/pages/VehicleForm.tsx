@@ -82,7 +82,7 @@ const emptyForm: FormData = {
   source_rep_phone: "",
   condition: "New",
   trim: "",
-  inventory_type: "beetee",
+  inventory_type: "Lamido",
   source_rep_signature: "",
   accepted_by_name: "",
   accepted_by_phone: "",
@@ -104,7 +104,7 @@ export default function VehicleForm() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const isResalePath = location.pathname.includes("resale-vehicles");
-  const defaultType = (searchParams.get("inventory_type") || (isResalePath ? "resale" : "beetee")) as "beetee" | "resale";
+  const defaultType = (searchParams.get("inventory_type") || (isResalePath ? "resale" : "Lamido")) as "Lamido" | "resale";
   const { role } = useAuth();
   const { permissions } = usePermissions();
   
@@ -125,7 +125,7 @@ export default function VehicleForm() {
       setForm(prev => ({ 
         ...prev, 
         inventory_type: defaultType,
-        condition: defaultType === 'beetee' ? 'New' : 'Used'
+        condition: defaultType === 'Lamido' ? 'New' : 'Used'
       }));
     }
   }, [isEdit, hasEdit, role, permissions, navigate, defaultType]);
@@ -184,7 +184,7 @@ export default function VehicleForm() {
         source_rep_phone: v.source_rep_phone || "",
         condition: v.condition || "Used",
         trim: v.trim || "",
-        inventory_type: v.inventory_type || "beetee",
+        inventory_type: v.inventory_type || "Lamido",
         source_rep_signature: v.source_rep_signature || "",
         accepted_by_name: v.accepted_by_name || "",
         accepted_by_phone: v.accepted_by_phone || "",
@@ -533,7 +533,7 @@ export default function VehicleForm() {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="beetee">Beetee Inventory</SelectItem>
+                  <SelectItem value="Lamido">Lamido Inventory</SelectItem>
                   <SelectItem value="resale">Resale Inventory</SelectItem>
                 </SelectContent>
               </Select>

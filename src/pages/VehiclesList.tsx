@@ -82,9 +82,9 @@ export default function VehiclesList() {
   const queryClient = useQueryClient();
 
   const { data: vehicles = [], isLoading } = useQuery({
-    queryKey: ["vehicles", "beetee"],
+    queryKey: ["vehicles", "Lamido"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("vehicles").select("*").eq("inventory_type", "beetee").order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("vehicles").select("*").eq("inventory_type", "Lamido").order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -108,7 +108,7 @@ export default function VehiclesList() {
       const { error } = await supabase
         .from("vehicles")
         .delete()
-        .eq("inventory_type", "beetee")
+        .eq("inventory_type", "Lamido")
         .eq("status", "Sold");
       if (error) throw error;
       await logAction("DELETE", "Bulk Vehicles", "All Sold");
@@ -172,7 +172,7 @@ export default function VehiclesList() {
       "Source Company": v.source_company || "", "Date Arrived": v.date_arrived || "",
     }));
     logAction("EXPORT", "Vehicle", "bulk", { format: "Excel", count: rows.length });
-    exportToExcel(rows, "beetee_vehicles_export");
+    exportToExcel(rows, "Lamido_vehicles_export");
   };
 
   const handleExportCSV = () => {
@@ -182,7 +182,7 @@ export default function VehiclesList() {
       Source: v.source_company || "", Date: v.date_arrived || "",
     }));
     logAction("EXPORT", "Vehicle", "bulk", { format: "CSV", count: rows.length });
-    exportToCSV(rows, "beetee_vehicles_export");
+    exportToCSV(rows, "Lamido_vehicles_export");
   };
 
   const handleExportPDF = () => {
@@ -194,7 +194,7 @@ export default function VehiclesList() {
       condition: v.condition || "—",
     }));
     logAction("EXPORT", "Vehicle", "bulk", { format: "PDF", count: rows.length });
-    exportToPDF("Beetee Vehicles Inventory", rows, [
+    exportToPDF("Lamido Vehicles Inventory", rows, [
       { key: "vehicle", label: "Vehicle Description" }, 
       { key: "vin", label: "VIN/Chassis" },
       { key: "price", label: "Price" }, 
@@ -214,7 +214,7 @@ export default function VehiclesList() {
       status: v.status, condition: v.condition || "—",
     }));
     logAction("PRINT", "Vehicle List", "bulk", { count: filtered.length });
-    printTable("Beetee Vehicles Inventory — Beetee Autos", rows, [
+    printTable("Lamido Vehicles Inventory — Lamido Cars", rows, [
       { key: "vehicle", label: "Vehicle" }, { key: "vin", label: "VIN" },
       { key: "price", label: "Price" }, { key: "status", label: "Status" }, { key: "condition", label: "Condition" },
     ]);
@@ -234,7 +234,7 @@ export default function VehiclesList() {
               <span className="text-sm font-medium uppercase tracking-wider text-sky-500">Fleet Management</span>
             </div>
           <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
-            Beetee Vehicles <span className="text-[10px] opacity-30 font-mono">v2.1</span>
+            Lamido Vehicles <span className="text-[10px] opacity-30 font-mono">v2.1</span>
           </h1>
           <p className="text-base text-muted-foreground mt-2 max-w-xl">
             View, add, and manage your primary vehicle inventory.

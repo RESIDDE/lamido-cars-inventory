@@ -6,7 +6,7 @@ import { logAction } from "@/lib/logger";
 type AuthState = {
   user: User | null;
   profile: any | null;
-  role: "super_admin" | "admin" | "sales" | "mechanic" | null;
+  role: "admin" | "admin" | "sales" | "mechanic" | null;
   isLoading: boolean;
   refreshProfile: () => Promise<void>;
 };

@@ -9,11 +9,11 @@ SECURITY DEFINER
 SET search_path = public, auth
 AS $$
 BEGIN
-  -- Security check: Only allow if the executor is a super_admin
+  -- Security check: Only allow if the executor is a admin
   IF NOT EXISTS (
     SELECT 1 FROM public.user_roles 
     WHERE user_id = auth.uid() 
-    AND role = 'super_admin'
+    AND role = 'admin'
   ) THEN
     RAISE EXCEPTION 'Only super admins can delete users permanently.';
   END IF;
@@ -35,7 +35,7 @@ USING (
   EXISTS (
     SELECT 1 FROM public.user_roles 
     WHERE user_id = auth.uid() 
-    AND role = 'super_admin'
+    AND role = 'admin'
   )
 );
 
@@ -45,6 +45,6 @@ USING (
   EXISTS (
     SELECT 1 FROM public.user_roles 
     WHERE user_id = auth.uid() 
-    AND role = 'super_admin'
+    AND role = 'admin'
   )
 );

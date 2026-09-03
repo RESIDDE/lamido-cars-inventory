@@ -8,7 +8,7 @@ create table if not exists public.app_settings (
   updated_at timestamptz not null default now()
 );
 
--- RLS: authenticated users can read; only super_admin can write
+-- RLS: authenticated users can read; only admin can write
 alter table public.app_settings enable row level security;
 
 create policy "Allow authenticated read of app_settings"
@@ -16,19 +16,19 @@ create policy "Allow authenticated read of app_settings"
   to authenticated
   using (true);
 
-create policy "Allow super_admin to upsert app_settings"
+create policy "Allow admin to upsert app_settings"
   on public.app_settings for all
   to authenticated
   using (
     exists (
       select 1 from public.user_roles
-      where user_id = auth.uid() and role = 'super_admin'
+      where user_id = auth.uid() and role = 'admin'
     )
   )
   with check (
     exists (
       select 1 from public.user_roles
-      where user_id = auth.uid() and role = 'super_admin'
+      where user_id = auth.uid() and role = 'admin'
     )
   );
 

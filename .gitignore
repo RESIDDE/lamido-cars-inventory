@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local agent config & scratch
+.agents/
+replace.cjs
+remove_admin.cjs
+run_migrations.js
+

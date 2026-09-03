@@ -1,6 +1,6 @@
 import {
-  LayoutDashboard, Car, Users, MessageSquare, ClipboardCheck,
-  Wrench, FileText, FileSignature, Crown, File,
+  LayoutDashboard, Car, Users, MessageSquare,
+  FileText, FileSignature, Crown,
 } from "lucide-react";
 import { NairaIcon } from "@/components/NairaIcon";
 import { NavLink } from "@/components/NavLink";
@@ -24,17 +24,13 @@ type NavItem = {
 
 const ALL_NAV_ITEMS: NavItem[] = [
   { title: "Dashboard",       url: "/dashboard",          pageKey: "dashboard",          icon: LayoutDashboard },
-  { title: "Beetee Vehicles", url: "/vehicles",           pageKey: "vehicles",           icon: Car },
-  { title: "Resale Vehicles", url: "/resale-vehicles",    pageKey: "resale-vehicles",    icon: Car },
+  { title: "Lamido Vehicles", url: "/vehicles",           pageKey: "vehicles",           icon: Car },
   { title: "Customers",       url: "/customers",          pageKey: "customers",          icon: Users },
   { title: "Sales",           url: "/sales",              pageKey: "sales",              icon: (props) => <NairaIcon {...props} /> },
   { title: "Proforma Quotes", url: "/performance-quotes", pageKey: "performance-quotes", icon: FileSignature },
   { title: "Invoices",        url: "/invoices",           pageKey: "invoices",           icon: FileText },
   { title: "Inquiries",       url: "/inquiries",          pageKey: "inquiries",          icon: MessageSquare },
-  { title: "Inspections",     url: "/inspections",        pageKey: "inspections",        icon: ClipboardCheck },
-  { title: "Repairs",         url: "/repairs",            pageKey: "repairs",            icon: Wrench },
   { title: "Auth. Form",      url: "/authority-to-sell",  pageKey: "authority-to-sell",  icon: FileSignature },
-  { title: "Documents",       url: "/documents",          pageKey: "documents",          icon: File },
 ];
 
 export function AppSidebar() {
@@ -43,7 +39,7 @@ export function AppSidebar() {
   const { role, user, profile } = useAuth();
   const { permissions } = usePermissions();
 
-  const isSuperAdmin = role === "super_admin";
+  const isSuperAdmin = role === "admin";
 
   // Get accessible pages using live Supabase-backed permissions
   const accessiblePages = getAccessiblePages(role as AppRole | null, permissions);
@@ -60,11 +56,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-4 border-b border-sidebar-border/10">
         <div className="flex items-center gap-3 mb-4">
-          <img src={logo} alt="Beetee Autos logo" className="h-8 w-8 object-contain shrink-0" />
+          <img src={logo} alt="Lamido Cars logo" className="h-8 w-8 object-contain shrink-0" />
           {!collapsed && (
             <div className="min-w-0">
               <h1 className="text-sm font-black text-sidebar-primary uppercase tracking-[0.2em] leading-tight truncate">
-                BEETEE AUTOMOBILE
+                Lamido CarsMOBILE
               </h1>
             </div>
           )}
@@ -113,7 +109,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
 
-              {/* Settings — only for super_admin */}
+              {/* Settings — only for admin */}
               {isSuperAdmin && (
                 <SidebarMenuItem>
                   <div className="py-1">
