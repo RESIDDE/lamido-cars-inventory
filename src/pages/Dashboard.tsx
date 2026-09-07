@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import {
   Car, Users, DollarSign, Wrench, PlusCircle, Search, ChevronRight,
   TrendingUp, Calendar, ArrowUpRight, BarChart3, Clock, PieChart as PieChartIcon,
-  FileSignature, FileText, Building2, Printer, Download, ListFilter
+  FileSignature, FileText, Building2, Printer, Download, ListFilter, Receipt
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -220,6 +220,15 @@ export default function Dashboard() {
       const { data, error } = await supabase.from("invoices").select("*");
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: expenses = [] } = useQuery({
+    queryKey: ["dash-expenses"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("expenses").select("id, amount, created_at");
+      if (error) return [];
+      return data || [];
     },
   });
 
@@ -587,10 +596,10 @@ export default function Dashboard() {
                 <h3 className="text-2xl font-bold">{sales.length}</h3>
                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Sales</p>
               </Link>
-              <Link to="/repairs" className="bento-card p-5 group flex flex-col col-span-2">
-                <div className="p-2.5 bg-amber-500/10 w-fit rounded-xl group-hover:bg-amber-500/20 transition-colors mb-3"><Wrench className="h-5 w-5 text-amber-500" /></div>
-                <h3 className="text-2xl font-bold">{repairs.filter((r: any) => r.payment_status !== 'paid_in_full').length}</h3>
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Open Repair Jobs</p>
+              <Link to="/expenses" className="bento-card p-5 group flex flex-col col-span-2">
+                <div className="p-2.5 bg-amber-500/10 w-fit rounded-xl group-hover:bg-amber-500/20 transition-colors mb-3"><Receipt className="h-5 w-5 text-amber-500" /></div>
+                <h3 className="text-2xl font-bold">{expenses.length}</h3>
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Company Expenses Logged</p>
               </Link>
             </div>
 
@@ -659,7 +668,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <div className="relative flex-1 sm:w-48">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                     <Input
                       placeholder="Search company..."
                       value={companySearch}

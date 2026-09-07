@@ -671,9 +671,9 @@ export default function PerformanceQuotes() {
 
       {/* List */}
       <div className="bento-card overflow-hidden">
-        <div className="p-4 border-b border-white/5 flex items-center justify-between">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="p-4 border-b border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input 
               placeholder="Search quotes by customer or ID..." 
               value={search} 
@@ -681,7 +681,7 @@ export default function PerformanceQuotes() {
               className="pl-10 bg-background/50 border-white/10"
             />
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 flex-wrap sm:flex-nowrap">
             <Select value={selectedMonth} onValueChange={(v) => { setSelectedMonth(v); }}>
               <SelectTrigger className="w-[160px] h-10 rounded-xl bg-background/50 border-white/10 focus-visible:ring-emerald-500 text-sm">
                 <SelectValue placeholder="Select Month" />
@@ -914,7 +914,7 @@ export default function PerformanceQuotes() {
               {vehicleMode === "inventory" ? (
                 <>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     <Input
                       placeholder="Search inventory by make, model, VIN..."
                       value={vehicleSearch}

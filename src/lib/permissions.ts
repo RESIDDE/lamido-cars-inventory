@@ -10,17 +10,19 @@ export type PageKey =
   | "invoices"
   | "inquiries"
   | "authority-to-sell"
-  | "performance-quotes";
+  | "performance-quotes"
+  | "expenses";
 
 export const ALL_PAGES: { key: PageKey; label: string; path: string }[] = [
-  { key: "dashboard",          label: "Dashboard",       path: "/dashboard" },
-  { key: "vehicles",           label: "Lamido Vehicles", path: "/vehicles" },
-  { key: "customers",          label: "Customers",       path: "/customers" },
-  { key: "sales",              label: "Sales",           path: "/sales" },
-  { key: "invoices",           label: "Invoices",        path: "/invoices" },
-  { key: "inquiries",          label: "Inquiries",       path: "/inquiries" },
-  { key: "authority-to-sell",  label: "Auth. Form",      path: "/authority-to-sell" },
-  { key: "performance-quotes", label: "Proforma Quotes", path: "/performance-quotes" },
+  { key: "dashboard",          label: "Dashboard",        path: "/dashboard" },
+  { key: "vehicles",           label: "Lamido Vehicles",  path: "/vehicles" },
+  { key: "customers",          label: "Customers",        path: "/customers" },
+  { key: "sales",              label: "Sales",            path: "/sales" },
+  { key: "invoices",           label: "Invoices",         path: "/invoices" },
+  { key: "inquiries",          label: "Inquiries",        path: "/inquiries" },
+  { key: "authority-to-sell",  label: "Auth. Form",       path: "/authority-to-sell" },
+  { key: "performance-quotes", label: "Proforma Quotes",  path: "/performance-quotes" },
+  { key: "expenses",           label: "Company Expenses", path: "/expenses" },
 ];
 
 export const ADMIN_PAGES: PageKey[] = ALL_PAGES.map((p) => p.key);
@@ -37,14 +39,14 @@ export const DEFAULT_PERMISSIONS: PermissionsMap = {
     edit: ALL_PAGES.map((p) => p.key),
   },
   sales: {
-    view: ["dashboard", "vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell"],
-    create: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell"],
-    edit: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell"],
+    view: ["dashboard", "vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
+    create: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
+    edit: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
   },
   mechanic: {
-    view: ["dashboard", "vehicles"],
-    create: ["vehicles"],
-    edit: ["vehicles"],
+    view: ["dashboard", "vehicles", "expenses"],
+    create: ["vehicles", "expenses"],
+    edit: ["vehicles", "expenses"],
   },
 };
 

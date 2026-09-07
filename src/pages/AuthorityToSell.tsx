@@ -684,7 +684,7 @@ export default function AuthorityToSell() {
             <div className="glass-panel p-6 rounded-3xl flex flex-col md:flex-row gap-4 items-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none" />
               <div className="relative w-full group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-sky-500 transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-sky-500 transition-colors pointer-events-none" />
                 <Input
                   placeholder="Search by owner name, vehicle make, or chassis number..."
                   value={search}

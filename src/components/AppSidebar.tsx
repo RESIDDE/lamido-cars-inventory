@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Car, Users, MessageSquare,
-  FileText, FileSignature, Crown,
+  FileText, FileSignature, Crown, Receipt, BarChart3,
 } from "lucide-react";
 import { NairaIcon } from "@/components/NairaIcon";
 import { NavLink } from "@/components/NavLink";
@@ -23,14 +23,16 @@ type NavItem = {
 };
 
 const ALL_NAV_ITEMS: NavItem[] = [
-  { title: "Dashboard",       url: "/dashboard",          pageKey: "dashboard",          icon: LayoutDashboard },
-  { title: "Lamido Vehicles", url: "/vehicles",           pageKey: "vehicles",           icon: Car },
-  { title: "Customers",       url: "/customers",          pageKey: "customers",          icon: Users },
-  { title: "Sales",           url: "/sales",              pageKey: "sales",              icon: (props) => <NairaIcon {...props} /> },
-  { title: "Proforma Quotes", url: "/performance-quotes", pageKey: "performance-quotes", icon: FileSignature },
-  { title: "Invoices",        url: "/invoices",           pageKey: "invoices",           icon: FileText },
-  { title: "Inquiries",       url: "/inquiries",          pageKey: "inquiries",          icon: MessageSquare },
-  { title: "Auth. Form",      url: "/authority-to-sell",  pageKey: "authority-to-sell",  icon: FileSignature },
+  { title: "Dashboard",        url: "/dashboard",          pageKey: "dashboard",          icon: LayoutDashboard },
+  { title: "Lamido Vehicles",  url: "/vehicles",           pageKey: "vehicles",           icon: Car },
+  { title: "Customers",        url: "/customers",          pageKey: "customers",          icon: Users },
+  { title: "Sales",            url: "/sales",              pageKey: "sales",              icon: (props) => <NairaIcon {...props} /> },
+  { title: "Proforma Quotes",  url: "/performance-quotes", pageKey: "performance-quotes", icon: FileSignature },
+  { title: "Invoices",         url: "/invoices",           pageKey: "invoices",           icon: FileText },
+  { title: "Company Expenses", url: "/expenses",           pageKey: "expenses",           icon: Receipt },
+  { title: "Inquiries",        url: "/inquiries",          pageKey: "inquiries",          icon: MessageSquare },
+  { title: "Auth. Form",       url: "/authority-to-sell",  pageKey: "authority-to-sell",  icon: FileSignature },
+  { title: "Adv. Report",      url: "/report",             pageKey: "dashboard",          icon: BarChart3 },
 ];
 
 export function AppSidebar() {

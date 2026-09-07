@@ -141,7 +141,7 @@ export default function SourceCompanyDetails() {
       </div>
 
       <div className="glass-panel p-4 rounded-3xl relative overflow-hidden">
-        <Search className="absolute left-7 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-7 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         <Input 
           placeholder="Search by make, model, VIN..." 
           value={search} 

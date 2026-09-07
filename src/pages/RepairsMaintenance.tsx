@@ -1715,7 +1715,7 @@ export default function RepairsMaintenance() {
           {/* Search and List Section */}
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="relative group flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-amber-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-amber-500 transition-colors pointer-events-none" />
               <Input 
                  placeholder="Search vehicles, customers, or companies under repair..." 
                  className="pl-12 h-14 rounded-2xl bg-card border-white/10 focus-visible:ring-amber-500 text-lg shadow-xl"

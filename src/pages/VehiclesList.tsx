@@ -23,11 +23,11 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { 
   PlusCircle, Search, Eye, Pencil, Trash2, Download, FileText, Printer, 
   Car, ListFilter, BarChart as BarChartIcon, Clock, Package, ShieldCheck, AlertTriangle, PieChart as PieChartIcon, ChevronRight, ArrowLeft,
-  CheckCircle
+  CheckCircle, DollarSign, TrendingUp
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -48,11 +48,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="glass-panel p-3 border border-white/20 shadow-2xl rounded-xl z-50 min-w-[150px]">
         <p className="font-semibold text-foreground mb-1">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm font-medium flex justify-between gap-4" style={{ color: entry.color || entry.fill }}>
-            <span>{entry.name}:</span> <span>{entry.value.toLocaleString()}</span>
-          </p>
-        ))}
+        {payload.map((entry: any, index: number) => {
+          let val = entry.value;
+          if (typeof val === 'number') {
+            val = val.toLocaleString();
+          }
+          return (
+            <p key={index} className="text-sm font-medium flex justify-between gap-4" style={{ color: entry.color || entry.fill }}>
+              <span>{entry.name}:</span> <span>{val}</span>
+            </p>
+          );
+        })}
       </div>
     );
   }
@@ -63,10 +69,26 @@ const PAGE_SIZE = 20;
 
 export default function VehiclesList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { role } = useAuth();
   const { permissions } = usePermissions();
   const hasEdit = canEdit(role, "vehicles", permissions);
-  console.log("VehiclesList loaded with statusFilter support", { role, hasEdit });
+
+  const activeTab = searchParams.get("tab") === "sold" ? "sold" : "active";
+
+  const handleTabChange = (val: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (val === "sold") {
+        next.set("tab", "sold");
+      } else {
+        next.delete("tab");
+      }
+      return next;
+    });
+    setPage(0);
+    setStatusFilter("all");
+  };
 
   const [search, setSearch] = useState("");
   const [conditionFilter, setConditionFilter] = useState("all");
@@ -78,7 +100,6 @@ export default function VehiclesList() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteSoldDialog, setShowDeleteSoldDialog] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(true);
-  const [activeTab, setActiveTab] = useState("active");
   const queryClient = useQueryClient();
 
   const { data: vehicles = [], isLoading } = useQuery({
@@ -129,38 +150,47 @@ export default function VehiclesList() {
     return Array.from(companies).sort();
   }, [vehicles]);
 
-  const filtered = vehicles.filter((v) => {
-    // Hide customer cars from the main sales fleet view
-    if (v.status === "Customer Car") return false;
+  const activeVehicles = useMemo(() => vehicles.filter(v => v.status !== "Customer Car" && v.status !== "Sold"), [vehicles]);
+  const soldVehicles = useMemo(() => vehicles.filter(v => v.status === "Sold"), [vehicles]);
+  const activeCount = activeVehicles.length;
+  const soldCount = soldVehicles.length;
 
-    // Filter by tab
-    if (activeTab === "active" && v.status === "Sold") return false;
-    if (activeTab === "sold" && v.status !== "Sold") return false;
+  const soldRevenue = useMemo(() => soldVehicles.reduce((sum, v) => sum + (Number(v.price) || 0), 0), [soldVehicles]);
+  const soldCost = useMemo(() => soldVehicles.reduce((sum, v) => sum + (Number(v.cost_price) || 0), 0), [soldVehicles]);
+  const soldProfit = soldRevenue - soldCost;
 
-    const q = search.toLowerCase();
-    const matchesSearch = !q || v.make.toLowerCase().includes(q) || v.model.toLowerCase().includes(q) || (v.vin && v.vin.toLowerCase().includes(q)) || (v.source_company && v.source_company.toLowerCase().includes(q));
-    const matchesCondition = conditionFilter === "all" || v.condition === conditionFilter;
-    const matchesStatus = statusFilter === "all" || v.status === statusFilter;
-    const matchesSource = sourceCompanyFilter === "all" || v.source_company === sourceCompanyFilter;
-    
-    // Monthly/Weekly Filter
-    let matchesMonth = true;
-    if (selectedMonth !== "all") {
-      const vDate = new Date(v.created_at);
-      const vMonth = format(vDate, 'yyyy-MM');
-      if (vMonth !== selectedMonth) matchesMonth = false;
+  const filtered = useMemo(() => {
+    return vehicles.filter((v) => {
+      // Hide customer cars from the main fleet view
+      if (v.status === "Customer Car") return false;
 
-      if (matchesMonth && selectedWeek !== "all") {
-        const dayOfMonth = vDate.getDate();
-        const weekNum = Math.ceil(dayOfMonth / 7);
-        if (String(weekNum) !== selectedWeek) matchesMonth = false;
+      // Filter by tab
+      if (activeTab === "active" && v.status === "Sold") return false;
+      if (activeTab === "sold" && v.status !== "Sold") return false;
+
+      const q = search.toLowerCase();
+      const matchesSearch = !q || v.make.toLowerCase().includes(q) || v.model.toLowerCase().includes(q) || (v.vin && v.vin.toLowerCase().includes(q)) || (v.source_company && v.source_company.toLowerCase().includes(q));
+      const matchesCondition = conditionFilter === "all" || v.condition === conditionFilter;
+      const matchesStatus = activeTab === "sold" ? true : (statusFilter === "all" || v.status === statusFilter);
+      const matchesSource = sourceCompanyFilter === "all" || v.source_company === sourceCompanyFilter;
+      
+      // Monthly/Weekly Filter
+      let matchesMonth = true;
+      if (selectedMonth !== "all") {
+        const vDate = new Date(v.created_at);
+        const vMonth = format(vDate, 'yyyy-MM');
+        if (vMonth !== selectedMonth) matchesMonth = false;
+
+        if (matchesMonth && selectedWeek !== "all") {
+          const dayOfMonth = vDate.getDate();
+          const weekNum = Math.ceil(dayOfMonth / 7);
+          if (String(weekNum) !== selectedWeek) matchesMonth = false;
+        }
       }
-    }
 
-    return matchesSearch && matchesCondition && matchesStatus && matchesSource && matchesMonth;
-  });
-
-  const soldCount = vehicles.filter(v => v.status === "Sold").length;
+      return matchesSearch && matchesCondition && matchesStatus && matchesSource && matchesMonth;
+    });
+  }, [vehicles, activeTab, search, conditionFilter, statusFilter, sourceCompanyFilter, selectedMonth, selectedWeek]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -171,8 +201,8 @@ export default function VehiclesList() {
       Price: v.price, "Cost Price": v.cost_price || "", Status: v.status, Condition: v.condition || "",
       "Source Company": v.source_company || "", "Date Arrived": v.date_arrived || "",
     }));
-    logAction("EXPORT", "Vehicle", "bulk", { format: "Excel", count: rows.length });
-    exportToExcel(rows, "Lamido_vehicles_export");
+    logAction("EXPORT", "Vehicle", "bulk", { format: "Excel", count: rows.length, tab: activeTab });
+    exportToExcel(rows, `Lamido_${activeTab}_vehicles_export`);
   };
 
   const handleExportCSV = () => {
@@ -181,8 +211,8 @@ export default function VehiclesList() {
       Price: v.price, Status: v.status, Condition: v.condition || "",
       Source: v.source_company || "", Date: v.date_arrived || "",
     }));
-    logAction("EXPORT", "Vehicle", "bulk", { format: "CSV", count: rows.length });
-    exportToCSV(rows, "Lamido_vehicles_export");
+    logAction("EXPORT", "Vehicle", "bulk", { format: "CSV", count: rows.length, tab: activeTab });
+    exportToCSV(rows, `Lamido_${activeTab}_vehicles_export`);
   };
 
   const handleExportPDF = () => {
@@ -193,8 +223,8 @@ export default function VehiclesList() {
       status: v.status, 
       condition: v.condition || "—",
     }));
-    logAction("EXPORT", "Vehicle", "bulk", { format: "PDF", count: rows.length });
-    exportToPDF("Lamido Vehicles Inventory", rows, [
+    logAction("EXPORT", "Vehicle", "bulk", { format: "PDF", count: rows.length, tab: activeTab });
+    exportToPDF(`Lamido ${activeTab === 'sold' ? 'Sold' : 'Active'} Vehicles Inventory`, rows, [
       { key: "vehicle", label: "Vehicle Description" }, 
       { key: "vin", label: "VIN/Chassis" },
       { key: "price", label: "Price" }, 
@@ -204,8 +234,8 @@ export default function VehiclesList() {
   };
 
   const handleExportJSON = () => {
-    logAction("EXPORT", "Vehicle", "bulk", { format: "JSON", count: filtered.length });
-    exportToJSON(filtered, "vehicles_export");
+    logAction("EXPORT", "Vehicle", "bulk", { format: "JSON", count: filtered.length, tab: activeTab });
+    exportToJSON(filtered, `vehicles_${activeTab}_export`);
   };
 
   const handlePrint = () => {
@@ -213,8 +243,8 @@ export default function VehiclesList() {
       vehicle: `${v.year} ${v.make} ${v.model}`, vin: v.vin || "—", price: `₦${Number(v.price).toLocaleString()}`,
       status: v.status, condition: v.condition || "—",
     }));
-    logAction("PRINT", "Vehicle List", "bulk", { count: filtered.length });
-    printTable("Lamido Vehicles Inventory — Lamido Cars", rows, [
+    logAction("PRINT", "Vehicle List", "bulk", { count: filtered.length, tab: activeTab });
+    printTable(`Lamido ${activeTab === 'sold' ? 'Sold' : 'Active'} Vehicles Inventory — Lamido Cars`, rows, [
       { key: "vehicle", label: "Vehicle" }, { key: "vin", label: "VIN" },
       { key: "price", label: "Price" }, { key: "status", label: "Status" }, { key: "condition", label: "Condition" },
     ]);
@@ -237,7 +267,7 @@ export default function VehiclesList() {
             Lamido Vehicles <span className="text-[10px] opacity-30 font-mono">v2.1</span>
           </h1>
           <p className="text-base text-muted-foreground mt-2 max-w-xl">
-            View, add, and manage your primary vehicle inventory.
+            View, add, and manage your active fleet and track historical sold inventory.
           </p>
           </div>
         </div>
@@ -257,7 +287,7 @@ export default function VehiclesList() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-xl glass-panel p-2 shadow-2xl border-white/10" align="end">
-               <DropdownMenuItem onClick={handleExportCSV} className="rounded-lg cursor-pointer"><FileText className="mr-2 h-4 w-4" /> Export as CSV</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportCSV} className="rounded-lg cursor-pointer"><FileText className="mr-2 h-4 w-4" /> Export as CSV</DropdownMenuItem>
               <DropdownMenuItem onClick={handleExportExcel} className="rounded-lg cursor-pointer"><FileText className="mr-2 h-4 w-4" /> Export as Excel / Document</DropdownMenuItem>
               <DropdownMenuItem onClick={handleExportPDF} className="rounded-lg cursor-pointer"><FileText className="mr-2 h-4 w-4" /> Export as PDF</DropdownMenuItem>
               <DropdownMenuItem onClick={handleExportJSON} className="rounded-lg cursor-pointer"><FileText className="mr-2 h-4 w-4" /> Export as JSON</DropdownMenuItem>
@@ -277,115 +307,222 @@ export default function VehiclesList() {
 
       {showAnalytics && (
         <div className="space-y-6 animate-fade-down">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
-            <Card className="bento-card border-none shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-primary/10 rounded-2xl"><Package className="h-6 w-6 text-primary" /></div>
-                </div>
-                <h3 className="text-3xl font-bold">{filtered.filter(v => v.status !== 'Sold').length}</h3>
-                <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Units In Stock</p>
-              </CardContent>
-            </Card>
+          {activeTab === "active" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-primary/10 rounded-2xl"><Package className="h-6 w-6 text-primary" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">{activeCount}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Units In Stock</p>
+                </CardContent>
+              </Card>
 
-            <Card className="bento-card border-none shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-emerald-500/10 rounded-2xl"><ShieldCheck className="h-6 w-6 text-emerald-500" /></div>
-                </div>
-                <h3 className="text-3xl font-bold">₦{filtered.filter(v => v.status !== 'Sold').reduce((sum, v) => sum + (Number(v.cost_price) || 0), 0).toLocaleString()}</h3>
-                <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Stock Value</p>
-              </CardContent>
-            </Card>
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-emerald-500/10 rounded-2xl"><ShieldCheck className="h-6 w-6 text-emerald-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">₦{activeVehicles.reduce((sum, v) => sum + (Number(v.cost_price) || 0), 0).toLocaleString()}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Stock Cost Value</p>
+                </CardContent>
+              </Card>
 
-            <Card className="bento-card border-none shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-sky-500/10 rounded-2xl"><ShieldCheck className="h-6 w-6 text-sky-500" /></div>
-                </div>
-                <h3 className="text-3xl font-bold">₦{filtered.filter(v => v.status !== 'Sold').reduce((sum, v) => sum + (Number(v.price) || 0), 0).toLocaleString()}</h3>
-                <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Total Selling Price</p>
-              </CardContent>
-            </Card>
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-sky-500/10 rounded-2xl"><ShieldCheck className="h-6 w-6 text-sky-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">₦{activeVehicles.reduce((sum, v) => sum + (Number(v.price) || 0), 0).toLocaleString()}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Total Selling Price</p>
+                </CardContent>
+              </Card>
 
-            <Card className="bento-card border-none shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-amber-500/10 rounded-2xl"><Clock className="h-6 w-6 text-amber-500" /></div>
-                </div>
-                <h3 className="text-3xl font-bold">{filtered.filter(v => v.status === 'Reserved').length}</h3>
-                <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Reserved Units</p>
-              </CardContent>
-            </Card>
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-amber-500/10 rounded-2xl"><Clock className="h-6 w-6 text-amber-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">{activeVehicles.filter(v => v.status === 'Reserved').length}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Reserved Units</p>
+                </CardContent>
+              </Card>
 
-            <Card className="bento-card border-none shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-red-500/10 rounded-2xl"><AlertTriangle className="h-6 w-6 text-red-500" /></div>
-                </div>
-                <h3 className="text-3xl font-bold">{filtered.filter(v => v.condition === 'Damaged').length}</h3>
-                <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Damaged Stock</p>
-              </CardContent>
-            </Card>
-          </div>
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-red-500/10 rounded-2xl"><AlertTriangle className="h-6 w-6 text-red-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">{activeVehicles.filter(v => v.condition === 'Damaged').length}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Damaged Stock</p>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-blue-500/10 rounded-2xl"><CheckCircle className="h-6 w-6 text-blue-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">{soldCount}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Total Sold Units</p>
+                </CardContent>
+              </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bento-card p-6 min-h-[350px]">
-              <h3 className="font-bold text-lg flex items-center gap-2 mb-6"><Clock className="w-5 h-5 text-sky-500" /> Aging Analysis</h3>
-              <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={(() => {
-                    const counts: any = { "0-30 Days": 0, "31-60 Days": 0, "61-90 Days": 0, "90+ Days": 0 };
-                    vehicles.filter(v => v.status !== 'Sold').forEach(v => {
-                      const days = differenceInDays(new Date(), new Date(v.date_arrived || v.created_at));
-                      if (days <= 30) counts["0-30 Days"]++;
-                      else if (days <= 60) counts["31-60 Days"]++;
-                      else if (days <= 90) counts["61-90 Days"]++;
-                      else counts["90+ Days"]++;
-                    });
-                    return Object.entries(counts).map(([name, value]) => ({ name, value }));
-                  })()}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground)/0.05)" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="value" name="Vehicles" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-emerald-500/10 rounded-2xl"><DollarSign className="h-6 w-6 text-emerald-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">₦{soldRevenue.toLocaleString()}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Total Sold Sales Value</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-violet-500/10 rounded-2xl"><Package className="h-6 w-6 text-violet-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">₦{soldCost.toLocaleString()}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Total Sold Cost Price</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bento-card border-none shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-amber-500/10 rounded-2xl"><TrendingUp className="h-6 w-6 text-amber-500" /></div>
+                  </div>
+                  <h3 className="text-3xl font-bold">₦{soldProfit.toLocaleString()}</h3>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider mt-1">Realized Gross Margin</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "active" ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bento-card p-6 min-h-[350px]">
+                <h3 className="font-bold text-lg flex items-center gap-2 mb-6"><Clock className="w-5 h-5 text-sky-500" /> Aging Analysis</h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={(() => {
+                      const counts: any = { "0-30 Days": 0, "31-60 Days": 0, "61-90 Days": 0, "90+ Days": 0 };
+                      activeVehicles.forEach(v => {
+                        const days = differenceInDays(new Date(), new Date(v.date_arrived || v.created_at));
+                        if (days <= 30) counts["0-30 Days"]++;
+                        else if (days <= 60) counts["31-60 Days"]++;
+                        else if (days <= 90) counts["61-90 Days"]++;
+                        else counts["90+ Days"]++;
+                      });
+                      return Object.entries(counts).map(([name, value]) => ({ name, value }));
+                    })()}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground)/0.05)" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="value" name="Vehicles" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bento-card p-6 flex flex-col justify-center">
+                <h3 className="font-bold text-lg flex items-center gap-2 mb-6"><PieChartIcon className="w-5 h-5 text-amber-500" /> Status Mix</h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie 
+                        data={[
+                          { name: 'Available', value: activeVehicles.filter(v => v.status === 'Available').length },
+                          { name: 'Reserved', value: activeVehicles.filter(v => v.status === 'Reserved').length },
+                        ].filter(x => x.value > 0)} 
+                        innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value"
+                      >
+                        {COLORS.map((color, i) => <Cell key={i} fill={color} />)}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bento-card p-6 min-h-[350px]">
+                <h3 className="font-bold text-lg flex items-center gap-2 mb-6"><Car className="w-5 h-5 text-blue-500" /> Top Sold Brands</h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={(() => {
+                      const brandMap: Record<string, number> = {};
+                      soldVehicles.forEach(v => {
+                        brandMap[v.make] = (brandMap[v.make] || 0) + 1;
+                      });
+                      return Object.entries(brandMap)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 6)
+                        .map(([name, value]) => ({ name, value }));
+                    })()}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground)/0.05)" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="value" name="Units Sold" fill="hsl(217 91% 60%)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-            <div className="bento-card p-6 flex flex-col justify-center">
-              <h3 className="font-bold text-lg flex items-center gap-2 mb-6"><PieChartIcon className="w-5 h-5 text-amber-500" /> Status Mix</h3>
-              <div className="h-[250px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie 
-                      data={[
-                        { name: 'Available', value: vehicles.filter(v => v.status === 'Available').length },
-                        { name: 'Reserved', value: vehicles.filter(v => v.status === 'Reserved').length },
-                        { name: 'Sold', value: vehicles.filter(v => v.status === 'Sold').length },
-                      ].filter(x => x.value > 0)} 
-                      innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value"
-                    >
-                      {COLORS.map((color, i) => <Cell key={i} fill={color} />)}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="bento-card p-6 flex flex-col justify-center">
+                <h3 className="font-bold text-lg flex items-center gap-2 mb-6"><PieChartIcon className="w-5 h-5 text-emerald-500" /> Sold Condition Breakdown</h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie 
+                        data={[
+                          { name: 'Used', value: soldVehicles.filter(v => v.condition === 'Used').length },
+                          { name: 'New', value: soldVehicles.filter(v => v.condition === 'New').length },
+                          { name: 'Damaged', value: soldVehicles.filter(v => v.condition === 'Damaged').length },
+                        ].filter(x => x.value > 0)} 
+                        innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value"
+                      >
+                        {COLORS.map((color, i) => <Cell key={i} fill={color} />)}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-2 glass-panel p-1 rounded-2xl h-12">
-          <TabsTrigger value="active" className="rounded-xl data-[state=active]:bg-sky-500 data-[state=active]:text-white transition-all h-full font-bold">
-            <Package className="w-4 h-4 mr-2" /> Active Inventory
+      {/* Tabs Control */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-[440px] mb-2 glass-panel p-1.5 rounded-2xl h-14 border border-white/10 shadow-lg">
+          <TabsTrigger 
+            value="active" 
+            className="rounded-xl data-[state=active]:bg-sky-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all h-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2"
+          >
+            <Package className="w-4 h-4" /> 
+            <span>Active Fleet</span>
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs bg-white/15 font-mono">
+              {activeCount}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="sold" className="rounded-xl data-[state=sold]:bg-blue-500 data-[state=sold]:text-white transition-all h-full font-bold">
-            <CheckCircle className="w-4 h-4 mr-2" /> Sold Vehicles
+          <TabsTrigger 
+            value="sold" 
+            className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all h-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2"
+          >
+            <CheckCircle className="w-4 h-4" /> 
+            <span>Sold Vehicles</span>
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs bg-white/15 font-mono">
+              {soldCount}
+            </span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -394,7 +531,7 @@ export default function VehiclesList() {
       <div className="glass-panel p-4 rounded-3xl flex flex-col sm:flex-row gap-4 items-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-sky-500/5 to-transparent pointer-events-none" />
         <div className="relative w-full sm:w-80 group z-10">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-sky-500 transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-sky-500 transition-colors pointer-events-none" />
           <Input 
             placeholder="Search by name, model, VIN..." 
             value={search} 
@@ -499,12 +636,24 @@ export default function VehiclesList() {
         </div>
       ) : paged.length === 0 ? (
         <div className="bento-card p-12 flex flex-col items-center justify-center text-center">
-          <div className="bg-sky-500/10 p-5 rounded-full mb-4">
-            <Car className="h-10 w-10 text-sky-500" />
+          <div className={`${activeTab === 'sold' ? 'bg-blue-500/10' : 'bg-sky-500/10'} p-5 rounded-full mb-4`}>
+            {activeTab === 'sold' ? <CheckCircle className="h-10 w-10 text-blue-500" /> : <Car className="h-10 w-10 text-sky-500" />}
           </div>
-          <h2 className="text-xl font-bold mb-2">No vehicles found.</h2>
-          <p className="text-muted-foreground max-w-sm mb-6">We couldn't find any vehicles matching your current search criteria.</p>
-          <Button variant="outline" onClick={() => {setSearch(''); setConditionFilter('all')}} className="rounded-xl">Clear Filters</Button>
+          <h2 className="text-xl font-bold mb-2">
+            {activeTab === 'sold' ? "No sold vehicles found." : "No active vehicles found."}
+          </h2>
+          <p className="text-muted-foreground max-w-sm mb-6">
+            {activeTab === 'sold' 
+              ? (search || conditionFilter !== 'all' || sourceCompanyFilter !== 'all' || selectedMonth !== 'all' 
+                  ? "No sold vehicles match your current filter criteria." 
+                  : "Vehicles marked with status 'Sold' in the fleet will be cataloged here.")
+              : "We couldn't find any vehicles matching your current search criteria."}
+          </p>
+          {(search || conditionFilter !== 'all' || sourceCompanyFilter !== 'all' || selectedMonth !== 'all') && (
+            <Button variant="outline" onClick={() => { setSearch(''); setConditionFilter('all'); setSourceCompanyFilter('all'); setSelectedMonth('all'); setSelectedWeek('all'); }} className="rounded-xl">
+              Clear Filters
+            </Button>
+          )}
         </div>
       ) : (
         <div className="bento-card overflow-hidden">
@@ -520,6 +669,7 @@ export default function VehiclesList() {
                   <TableHead className="font-semibold">Condition</TableHead>
                   <TableHead className="font-semibold">Source</TableHead>
                   <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold text-right">{activeTab === 'sold' ? 'Sold Price' : 'Price'}</TableHead>
                   <TableHead className="font-semibold">Status</TableHead>
                   <TableHead className="text-right font-semibold px-6">Actions</TableHead>
                 </TableRow>
@@ -543,6 +693,7 @@ export default function VehiclesList() {
                     <TableCell>{v.condition || "—"}</TableCell>
                     <TableCell className="max-w-[120px] truncate" title={v.source_company}>{v.source_company || "—"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{v.date_arrived ? new Date(v.date_arrived).toLocaleDateString() : "—"}</TableCell>
+                    <TableCell className="text-right font-bold text-sm font-mono">₦{Number(v.price).toLocaleString()}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
                         v.status?.toLowerCase() === 'available' ? 'bg-emerald-500/10 text-emerald-500' : 
@@ -594,6 +745,7 @@ export default function VehiclesList() {
                     }`}>
                       {v.status || "Unknown"}
                     </span>
+                    <p className="font-bold text-xs text-foreground">₦{Number(v.price).toLocaleString()}</p>
                   </div>
                 </div>
 

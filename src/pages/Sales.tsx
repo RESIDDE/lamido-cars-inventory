@@ -1065,7 +1065,7 @@ export default function Sales() {
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-transparent pointer-events-none" />
         <div className="relative w-full group z-10 flex flex-col sm:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-violet-500 transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-violet-500 transition-colors pointer-events-none" />
             <Input 
               placeholder="Search by vehicle or customer name..." 
               value={search} 
@@ -1496,7 +1496,7 @@ export default function Sales() {
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Select Vehicles *</Label>
               <div className="bg-foreground/5 border border-white/5 p-4 rounded-2xl flex flex-col gap-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                   <Input 
                     placeholder="Search by make, model, or year..." 
                     className="h-9 pl-9 rounded-xl bg-background/50 border-white/10 text-sm"

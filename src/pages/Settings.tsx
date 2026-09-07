@@ -33,7 +33,7 @@ import { logAction, describeLog } from "@/lib/logger";
 type Tab = "team" | "permissions" | "audit" | "system";
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  admin: { label: "Super Admin", color: "text-amber-400", icon: <Crown className="w-3.5 h-3.5" /> },
+  super_admin: { label: "Super Admin", color: "text-amber-400", icon: <Crown className="w-3.5 h-3.5" /> },
   admin: { label: "Admin", color: "text-emerald-500", icon: <ShieldCheck className="w-3.5 h-3.5" /> },
   sales: { label: "Sales", color: "text-blue-400", icon: <User className="w-3.5 h-3.5" /> },
   mechanic: { label: "Mechanic", color: "text-violet-400", icon: <Settings2 className="w-3.5 h-3.5" /> },
