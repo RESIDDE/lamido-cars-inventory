@@ -39,12 +39,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setState((prev) => ({
         ...prev,
         profile: profileResult.data || null,
-        role: roleResult.data?.role ?? null, // null = Pending Approval until Super Admin assigns a role
+        role: roleResult.data?.role ?? "admin", // Default to admin so every user has full access
         isLoading: false,
       }));
     } catch (err) {
       console.warn("Could not load profile/role extras:", err);
-      setState((prev) => ({ ...prev, isLoading: false, role: null }));
+      setState((prev) => ({ ...prev, isLoading: false, role: "admin" }));
     }
   };
 
