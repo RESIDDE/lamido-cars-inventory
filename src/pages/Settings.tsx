@@ -106,12 +106,23 @@ export default function Settings() {
 
   if (role !== "admin") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-4 animate-fade-up">
-        <Lock className="w-12 h-12 text-muted-foreground/30" />
-        <h2 className="text-xl font-bold">Super Admin Only</h2>
-        <p className="text-muted-foreground max-w-sm text-sm">
-          The Settings panel is restricted to Super Admins. Contact your super admin to manage roles and access.
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6 animate-fade-up px-4">
+        <div className="p-5 bg-amber-500/10 rounded-full">
+          <Crown className="w-12 h-12 text-amber-400" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-extrabold">Claim Super Admin Access</h2>
+          <p className="text-muted-foreground max-w-sm text-sm">
+            You don't have an admin role assigned yet. Click the button below to claim Super Admin access for your account.
+          </p>
+        </div>
+        <Button
+          className="bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-lg shadow-amber-500/25 gap-2 rounded-xl px-8 py-5 text-base"
+          onClick={claimSuperAdmin}
+        >
+          <Crown className="w-5 h-5" /> Claim Super Admin
+        </Button>
+        <p className="text-xs text-muted-foreground">This will assign the Admin role to your account and reload the page.</p>
       </div>
     );
   }
