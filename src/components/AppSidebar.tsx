@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Car, Users, MessageSquare,
-  FileText, FileSignature, Crown, Receipt, BarChart3,
+  FileText, FileSignature, Crown, Receipt, BarChart3, LogOut,
 } from "lucide-react";
 import { NairaIcon } from "@/components/NairaIcon";
 import { NavLink } from "@/components/NavLink";
@@ -10,10 +10,11 @@ import { getAccessiblePages, type AppRole, type PageKey } from "@/lib/permission
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuItem,
-  SidebarHeader, useSidebar,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import logo from "@/assets/logo.png";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 type NavItem = {
   title: string;
@@ -35,76 +36,89 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: "Adv. Report",      url: "/report",             pageKey: "dashboard",          icon: BarChart3 },
 ];
 
+const PREFETCH_MAP: Record<string, () => Promise<any>> = {
+  "/dashboard":          () => import("@/pages/Index"),
+  "/vehicles":           () => import("@/pages/VehiclesList"),
+  "/customers":          () => import("@/pages/Customers"),
+  "/sales":              () => import("@/pages/Sales"),
+  "/performance-quotes": () => import("@/pages/PerformanceQuotes"),
+  "/invoices":           () => import("@/pages/Invoices"),
+  "/expenses":           () => import("@/pages/Expenses"),
+  "/inquiries":          () => import("@/pages/Inquiries"),
+  "/authority-to-sell":  () => import("@/pages/AuthorityToSell"),
+  "/report":             () => import("@/pages/AdvancedReport"),
+  "/settings":           () => import("@/pages/Settings"),
+};
+
 export function AppSidebar() {
   const { state, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
-  const { role, user, profile } = useAuth();
+  const { role } = useAuth();
   const { permissions } = usePermissions();
+  const navigate = useNavigate();
 
   const isSuperAdmin = role === "admin";
 
-  // Get accessible pages using live Supabase-backed permissions
   const accessiblePages = getAccessiblePages(role as AppRole | null, permissions);
-
   const visibleItems = ALL_NAV_ITEMS.filter((item) =>
     accessiblePages.includes(item.pageKey as PageKey)
   );
 
-  const handleNavClick = () => {
-    setOpenMobile(false);
+  const handleNavClick = () => setOpenMobile(false);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Signed out successfully.");
+    navigate("/auth");
+  };
+
+  const handlePrefetch = (url: string) => {
+    try {
+      PREFETCH_MAP[url]?.();
+    } catch (e) {}
   };
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-sidebar-border/10">
-        <div className="flex items-center gap-3 mb-4">
-          <img src={logo} alt="Lamido Cars logo" className="h-8 w-8 object-contain shrink-0" />
-          {!collapsed && (
-            <div className="min-w-0">
-              <h1 className="text-sm font-black text-sidebar-primary uppercase tracking-[0.2em] leading-tight truncate">
-                Lamido CarsMOBILE
-              </h1>
-            </div>
-          )}
-        </div>
+    <Sidebar
+      collapsible="icon"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderRight: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
 
-        {/* User Profile Summary */}
-        <NavLink to="/profile" onClick={handleNavClick} className="flex items-center gap-3 p-2 rounded-2xl hover:bg-sidebar-accent/50 transition-all duration-300 group">
-          <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary transition-colors shrink-0 shadow-lg">
-            <AvatarImage src={profile?.avatar_url ? `${profile.avatar_url}${profile.avatar_url.includes('?') ? '&' : '?'}t=${new Date(profile.updated_at || Date.now()).getTime()}` : ""} className="object-cover" />
-            <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
-              {profile?.display_name?.substring(0, 2).toUpperCase() || user?.email?.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-sidebar-foreground truncate leading-none">
-                {profile?.display_name || "Set Name"}
-              </p>
-              <p className="text-[10px] text-sidebar-foreground/50 uppercase font-black tracking-widest mt-1.5 truncate">
-                {role?.replace("_", " ") || "Member"}
-              </p>
-            </div>
-          )}
-        </NavLink>
-      </SidebarHeader>
 
-      <SidebarContent>
+      {/* ── Nav ──────────────────────────────────────────── */}
+      <SidebarContent className="flex flex-col justify-between h-full">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/60">Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white/30 text-[10px] uppercase tracking-widest font-black px-4 pt-4 pb-2">
+            Menu
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <div className="py-1">
+                  <div className="px-2 py-0.5">
                     <NavLink
                       to={item.url}
                       end={item.url === "/dashboard"}
                       onClick={handleNavClick}
-                      className="flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground w-full"
-                      activeClassName="bg-primary/10 text-primary font-semibold shadow-sm"
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white/50 hover:text-white/90 w-full"
+                      activeClassName="text-white/90 font-semibold"
+                      activeStyle={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.9)" }}
+                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        handlePrefetch(item.url);
+                        const el = e.currentTarget as HTMLElement;
+                        if (!el.dataset.active) el.style.background = "rgba(255,255,255,0.05)";
+                      }}
+                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        const el = e.currentTarget as HTMLElement;
+                        if (!el.dataset.active) el.style.background = "";
+                      }}
                     >
-                      {(() => { const Icon = item.icon; return <Icon className="h-5 w-5 shrink-0" />; })()}
+                      {(() => { const Icon = item.icon; return <Icon className="h-[18px] w-[18px] shrink-0 opacity-70" />; })()}
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </div>
@@ -114,14 +128,23 @@ export function AppSidebar() {
               {/* Settings — only for admin */}
               {isSuperAdmin && (
                 <SidebarMenuItem>
-                  <div className="py-1">
+                  <div className="px-2 py-0.5">
                     <NavLink
                       to="/settings"
                       onClick={handleNavClick}
-                      className="flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:bg-amber-500/10 text-amber-500/70 hover:text-amber-500 w-full"
-                      activeClassName="bg-amber-500/10 text-amber-500 font-semibold"
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white/40 hover:text-white/80 w-full"
+                      activeClassName="text-white/90 font-semibold"
+                      activeStyle={{ background: "rgba(255,255,255,0.08)" }}
+                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        const el = e.currentTarget as HTMLElement;
+                        if (!el.dataset.active) el.style.background = "rgba(255,255,255,0.05)";
+                      }}
+                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                        const el = e.currentTarget as HTMLElement;
+                        if (!el.dataset.active) el.style.background = "";
+                      }}
                     >
-                      <Crown className="h-5 w-5 shrink-0" />
+                      <Crown className="h-[18px] w-[18px] shrink-0 opacity-70" />
                       {!collapsed && <span>Settings</span>}
                     </NavLink>
                   </div>
@@ -130,6 +153,18 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* ── Sign Out Button at Bottom ──────────────────── */}
+        <div className="p-3 mt-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+            title="Sign Out"
+          >
+            <LogOut className="h-[18px] w-[18px] shrink-0 text-red-400/80" />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        </div>
       </SidebarContent>
     </Sidebar>
   );

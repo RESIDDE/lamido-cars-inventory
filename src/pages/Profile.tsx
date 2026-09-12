@@ -102,8 +102,8 @@ export default function Profile() {
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-20 animate-fade-up">
       <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-black tracking-tight text-foreground">Account Profile</h1>
-        <p className="text-muted-foreground">Manage your personal information and how you appear to the team.</p>
+        <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">Account Profile</h1>
+        <p className="text-xs text-white/40 mt-0.5">Manage your personal information and how you appear to the team.</p>
       </div>
 
       <div className="grid gap-8">

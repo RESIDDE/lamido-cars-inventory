@@ -259,16 +259,16 @@ export default function VehiclesList() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-2 mb-1 opacity-80">
-              <Car className="w-4 h-4 text-sky-500" />
-              <span className="text-sm font-medium uppercase tracking-wider text-sky-500">Fleet Management</span>
+            <div className="flex items-center gap-2 mb-1">
+              <Car className="w-3.5 h-3.5 text-sky-400/60" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-sky-400/60">Fleet Management</span>
             </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
-            Lamido Vehicles <span className="text-[10px] opacity-30 font-mono">v2.1</span>
-          </h1>
-          <p className="text-base text-muted-foreground mt-2 max-w-xl">
-            View, add, and manage your active fleet and track historical sold inventory.
-          </p>
+            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
+              Lamido Vehicles <span className="text-[10px] opacity-30 font-mono">v2.1</span>
+            </h1>
+            <p className="text-xs text-white/40 mt-0.5">
+              View, add, and manage your active fleet and track historical sold inventory.
+            </p>
           </div>
         </div>
         <div className="flex flex-row flex-wrap gap-2 shrink-0">

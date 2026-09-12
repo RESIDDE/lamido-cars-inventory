@@ -485,12 +485,12 @@ export default function AuthorityToSell() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-2 mb-2 opacity-70">
-              <FileText className="w-4 h-4 text-sky-500" />
-              <span className="text-xs font-bold uppercase tracking-widest text-sky-500">Legal Documents</span>
+            <div className="flex items-center gap-2 mb-1">
+              <FileText className="w-3.5 h-3.5 text-sky-400/60" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-sky-400/60">Legal Documents</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-heading font-black text-foreground tracking-tight">Authority to Sell</h1>
-            <p className="text-muted-foreground mt-2 text-base max-w-lg">
+            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">Authority to Sell</h1>
+            <p className="text-xs text-white/40 mt-0.5 max-w-lg">
               Create, manage, and search Bee Tee Automobile authorization agreements.
             </p>
           </div>

@@ -229,21 +229,21 @@ export default function Inspections() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1 opacity-80">
-            <ClipboardCheck className="w-4 h-4 text-rose-500" />
-            <span className="text-sm font-medium uppercase tracking-wider text-rose-500">Quality Control</span>
+          <div className="flex items-center gap-2 mb-1">
+            <ClipboardCheck className="w-3.5 h-3.5 text-rose-400/60" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-400/60">Quality Control</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
             Inspections
           </h1>
-          <p className="text-base text-muted-foreground mt-2 max-w-xl">
+          <p className="text-xs text-white/40 mt-0.5">
             Maintain compliance by logging vehicle handovers and returns.
           </p>
         </div>
         <div className="shrink-0">
           {canCreate(role, "inspections", permissions) && (
-            <Button onClick={() => setOpen(true)} size="lg" className="rounded-2xl shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 transition-all bg-rose-500 hover:bg-rose-600 text-white">
-              <PlusCircle className="mr-2 h-5 w-5" /> Add Log
+            <Button onClick={() => setOpen(true)} size="sm" className="rounded-xl transition-all font-semibold text-xs h-10 px-5 text-white" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Log
             </Button>
           )}
         </div>

@@ -14,11 +14,6 @@ async function fetchPermissions(): Promise<PermissionsMap> {
     .single();
 
   if (error) {
-    console.warn(
-      "[usePermissions] Could not load from Supabase:",
-      error.message,
-      "— using defaults. Run the app_settings migration in Supabase if this persists."
-    );
     return { ...DEFAULT_PERMISSIONS };
   }
 

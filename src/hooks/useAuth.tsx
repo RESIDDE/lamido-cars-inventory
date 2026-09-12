@@ -20,14 +20,29 @@ const AuthContext = createContext<AuthState>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    profile: null,
-    role: null,
-    isLoading: true,
-    refreshProfile: async () => {},
+  const [state, setState] = useState<AuthState>(() => {
+    try {
+      const cached = localStorage.getItem("lamido_auth_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return {
+          user: parsed.user || null,
+          profile: parsed.profile || null,
+          role: parsed.role || "admin",
+          isLoading: !parsed.user,
+          refreshProfile: async () => {},
+        };
+      }
+    } catch (e) {}
+    return {
+      user: null,
+      profile: null,
+      role: null,
+      isLoading: true,
+      refreshProfile: async () => {},
+    };
   });
-  const userIdRef = useRef<string | null>(null);
+  const userIdRef = useRef<string | null>(state.user?.id || null);
 
   const loadExtras = async (userId: string) => {
     try {
@@ -36,10 +51,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         (supabase as any).from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
       ]);
 
+      const profile = profileResult.data || null;
+      const role = roleResult.data?.role ?? "admin";
+
+      try {
+        localStorage.setItem("lamido_auth_cache", JSON.stringify({ user: state.user, profile, role }));
+      } catch (e) {}
+
       setState((prev) => ({
         ...prev,
-        profile: profileResult.data || null,
-        role: roleResult.data?.role ?? "admin", // Default to admin so every user has full access
+        profile,
+        role,
         isLoading: false,
       }));
     } catch (err) {

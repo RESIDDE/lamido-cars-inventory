@@ -627,21 +627,21 @@ export default function PerformanceQuotes() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1 opacity-80">
-            <FileSignature className="w-4 h-4 text-emerald-500" />
-            <span className="text-sm font-medium uppercase tracking-wider text-emerald-500">Sales & Proposals</span>
+          <div className="flex items-center gap-2 mb-1">
+            <FileSignature className="w-3.5 h-3.5 text-emerald-400/60" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400/60">Sales & Proposals</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
             Proforma Quotes
           </h1>
-          <p className="text-base text-muted-foreground mt-2 max-w-xl">
+          <p className="text-xs text-white/40 mt-0.5">
             Create and manage multi-vehicle proforma quotes with dynamic duty pricing.
           </p>
         </div>
         {canCreate(role, "performance-quotes", permissions) && (
           <div className="flex gap-2 shrink-0">
-            <Button size="lg" onClick={() => setDialogOpen(true)} className="rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all bg-emerald-500 hover:bg-emerald-600 cursor-pointer">
-              <PlusCircle className="mr-2 h-5 w-5" /> New Quote
+            <Button size="sm" onClick={() => setDialogOpen(true)} className="rounded-xl transition-all font-semibold text-xs h-10 px-5 text-white cursor-pointer" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+              <PlusCircle className="mr-2 h-4 w-4" /> New Quote
             </Button>
           </div>
         )}

@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --background: 0 0% 4%;
+    --foreground: 210 40% 97%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 97%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 97%;
     --primary: 230 100% 65%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
+    --secondary: 217 33% 14%;
+    --secondary-foreground: 210 40% 97%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 230 100% 65%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 14%;
+    --input: 217 33% 14%;
     --ring: 230 100% 65%;
     --radius: 1rem;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 90%;
     --sidebar-primary: 230 100% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
+    --sidebar-accent: 217 33% 12%;
+    --sidebar-accent-foreground: 210 40% 97%;
+    --sidebar-border: 217 33% 12%;
     --sidebar-ring: 230 100% 65%;
     --gradient-start: 230 100% 65%;
     --gradient-end: 280 100% 65%;
@@ -40,33 +40,35 @@
     --warning-foreground: 0 0% 100%;
   }
 
+  /* We lock to dark mode via class="dark" on <html>, so no separate .dark block needed.
+     These variables ARE the dark-mode values. */
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --background: 0 0% 4%;
+    --foreground: 210 40% 97%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 97%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 97%;
     --primary: 230 100% 65%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 18%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 65%;
+    --secondary: 217 33% 14%;
+    --secondary-foreground: 210 40% 97%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 60%;
     --accent: 230 100% 65%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 63% 31%;
+    --destructive: 0 63% 45%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
+    --border: 217 33% 14%;
+    --input: 217 33% 14%;
     --ring: 230 100% 65%;
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 40% 90%;
     --sidebar-primary: 230 100% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 18%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 18%;
+    --sidebar-accent: 217 33% 12%;
+    --sidebar-accent-foreground: 210 40% 97%;
+    --sidebar-border: 217 33% 12%;
     --sidebar-ring: 230 100% 65%;
   }
 }
@@ -77,12 +79,14 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary font-sans;
+    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    font-family: 'Poppins', 'Inter', sans-serif;
     overflow-x: hidden;
     width: 100%;
     -webkit-tap-highlight-color: transparent;
+    background-color: hsl(0 0% 4%);
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading tracking-tight;
   }
@@ -95,26 +99,45 @@
 }
 
 @layer components {
+  /* === GLASS CARD === */
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-black/40 rounded-2xl transition-all duration-300;
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl shadow-black/40 rounded-2xl transition-all duration-300;
   }
-  
+
   .glass-card:hover {
-    @apply border-primary/30 dark:border-primary/40 shadow-2xl;
+    @apply border-primary/30 shadow-2xl shadow-primary/5;
   }
 
+  /* === BENTO CARD — premium dark glassmorphism === */
   .bento-card {
-    @apply relative overflow-hidden rounded-3xl border border-white/20 dark:border-white/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:border-primary/30;
+    @apply relative overflow-hidden rounded-3xl bg-white/5 backdrop-blur-2xl shadow-xl transition-all duration-300;
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
+  .bento-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  /* === GLASS PANEL === */
   .glass-panel {
-    @apply bg-card/40 backdrop-blur-md border border-white/10 dark:border-white/5 shadow-sm rounded-2xl;
+    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-sm rounded-2xl;
   }
 
+  /* === GRADIENT TEXT === */
+  .gradient-text {
+    background: linear-gradient(to bottom, #ffffff, #ffffff, rgba(255, 255, 255, 0.6));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* === GRADIENT PRIMARY === */
   .gradient-primary {
     background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
   }
 
+  /* === STAT CARD (legacy compat) === */
   .stat-card {
     @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] shadow-sm glass-card border-none;
     background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
@@ -124,11 +147,17 @@
     content: '';
     @apply absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 transition-opacity duration-300;
   }
-  
+
   .stat-card:hover::before {
     @apply opacity-100;
   }
 
+  /* === GLOW ORB (decorative blurs inside cards) === */
+  .glow-orb {
+    @apply absolute pointer-events-none rounded-full blur-3xl opacity-20;
+  }
+
+  /* === SCROLLBAR === */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -137,7 +166,7 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-foreground/10 rounded-full hover:bg-foreground/20;
+    @apply bg-white/10 rounded-full hover:bg-white/20;
   }
 
   /* Mobile-specific adjustments */
@@ -145,7 +174,7 @@
     .bento-card {
       @apply p-4 rounded-2xl;
     }
-    
+
     .stat-card {
       @apply p-4;
     }
@@ -161,20 +190,45 @@
   }
 }
 
+/* === KEYFRAMES === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.30; }
+}
+
+/* Recharts tooltip gets our dark glass panel style */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(15,17,26,0.95) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 12px !important;
+}
+
 @media print {
-  /* Reset layout for physical paper */
   body, html {
     height: auto !important;
     overflow: visible !important;
     background: white !important;
   }
 
-  /* Unset the screen-locking heights we added for the app UI */
   .h-screen {
     height: auto !important;
   }
 
-  /* Ensure the main content container expands fully */
   main {
     overflow: visible !important;
     height: auto !important;
@@ -183,8 +237,7 @@
     display: block !important;
   }
 
-  /* Hide the app shell UI during print */
-  header, 
+  header,
   aside,
   .sidebar-trigger,
   [data-sidebar="sidebar"],
@@ -192,22 +245,18 @@
     display: none !important;
   }
 
-  /* Remove rounding and borders from the layout wrapper during print */
   .flex-1.flex-col {
     all: unset !important;
     display: block !important;
   }
 
-  /* Page breaks and sizing */
   @page {
     margin: 1cm;
     size: A4;
   }
 
-  /* Force signatures and images to print colors if needed */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 }
-

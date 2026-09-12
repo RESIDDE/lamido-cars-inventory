@@ -415,10 +415,10 @@ export default function Documents() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground uppercase tracking-widest">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
             Documents Hub
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-xs text-white/40 mt-0.5">
             Create, format, and manage business agreements, letters, and quotes. Synced across all devices.
           </p>
         </div>

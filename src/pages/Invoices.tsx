@@ -57,7 +57,6 @@ export default function Invoices() {
     invoice_type: "sale" as string,
     notes: "",
     due_date: "",
-    selectedRepairs: [] as string[],
   }, false);
 
   useEffect(() => {
@@ -65,7 +64,6 @@ export default function Invoices() {
     if (action === "create") {
       const customerId = searchParams.get("customer_id") || "";
       const saleId = searchParams.get("sale_id") || "";
-      const repairId = searchParams.get("repair_id") || "";
       const type = searchParams.get("type") || "sale";
       setForm({
         customer_id: customerId,
@@ -73,7 +71,6 @@ export default function Invoices() {
         invoice_type: type,
         notes: "",
         due_date: "",
-        selectedRepairs: repairId ? [repairId] : [],
       });
       setDialogOpen(true);
       setSearchParams({}, { replace: true });
@@ -84,15 +81,6 @@ export default function Invoices() {
     queryKey: ["invoices"],
     queryFn: async () => {
       const { data, error } = await supabase.from("invoices").select("*").order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: invoiceRepairLinks = [] } = useQuery({
-    queryKey: ["invoice-repair-links"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("invoice_repairs").select("*");
       if (error) throw error;
       return data;
     },
@@ -113,15 +101,6 @@ export default function Invoices() {
       const { data, error } = await supabase.from("sales").select("*, vehicles:vehicle_id(make, model, year)");
       if (error) throw error;
       return data;
-    },
-  });
-
-  const { data: repairs = [] } = useQuery({
-    queryKey: ["repairs"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("repairs").select("*, vehicles(make, model, year)");
-      if (error) throw error;
-      return data as any[];
     },
   });
 
@@ -154,10 +133,8 @@ export default function Invoices() {
   const createInvoice = useMutation({
     mutationFn: async () => {
       const sale = sales.find((s) => s.id === form.sale_id);
-      const selectedRepairData = repairs.filter((r) => form.selectedRepairs.includes(r.id));
       const saleTotal = sale ? Number(sale.sale_price) : 0;
-      const repairTotal = selectedRepairData.reduce((s, r) => s + Number(r.repair_cost || 0), 0);
-      const subtotal = saleTotal + repairTotal;
+      const subtotal = saleTotal;
       const total = subtotal;
 
       const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
@@ -166,28 +143,21 @@ export default function Invoices() {
         invoice_number: invoiceNumber,
         customer_id: form.customer_id,
         sale_id: form.sale_id || null,
-        invoice_type: form.invoice_type,
+        invoice_type: "sale",
         subtotal, tax: 0, total,
         notes: form.notes || null,
         due_date: form.due_date || null,
       }).select().single();
       if (error) throw error;
 
-      if (form.selectedRepairs.length > 0) {
-        const links = form.selectedRepairs.map((rid) => ({ invoice_id: inv.id, repair_id: rid }));
-        const { error: linkErr } = await supabase.from("invoice_repairs").insert(links);
-        if (linkErr) throw linkErr;
-      }
-
       return inv;
     },
     onSuccess: (inv) => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["invoice-repair-links"] });
       logAction("CREATE", "Invoice", inv?.id);
-      toast.success("Invoice created successfully. Please note it might take a moment to reflect across all views.");
+      toast.success("Invoice created successfully.");
       clearDraft();
-      setForm({ customer_id: "", sale_id: "", invoice_type: "sale", notes: "", due_date: "", selectedRepairs: [] });
+      setForm({ customer_id: "", sale_id: "", invoice_type: "sale", notes: "", due_date: "" });
       setDialogOpen(false);
     },
     onError: (e: any) => toast.error(e.message),
@@ -468,21 +438,21 @@ export default function Invoices() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1 opacity-80">
-            <Receipt className="w-4 h-4 text-cyan-500" />
-            <span className="text-sm font-medium uppercase tracking-wider text-cyan-500">Finance</span>
+          <div className="flex items-center gap-2 mb-1">
+            <Receipt className="w-3.5 h-3.5 text-cyan-400/60" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400/60">Finance</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-foreground/70 tracking-tight">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
             Invoices
           </h1>
-          <p className="text-base text-muted-foreground mt-2 max-w-xl">
+          <p className="text-xs text-white/40 mt-0.5">
             Generate and manage professional invoices for sales and repairs.
           </p>
         </div>
         <div className="shrink-0">
           {canCreate(role, "invoices", permissions) && (
-            <Button onClick={() => setDialogOpen(true)} size="lg" className="rounded-2xl shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all bg-cyan-500 hover:bg-cyan-600 text-white">
-              <PlusCircle className="mr-2 h-5 w-5" /> Create Invoice
+            <Button onClick={() => setDialogOpen(true)} size="sm" className="rounded-xl transition-all font-semibold text-xs h-10 px-5 text-white" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Create Invoice
             </Button>
           )}
         </div>
@@ -688,25 +658,13 @@ export default function Invoices() {
           <div className="p-6 space-y-5">
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Customer *</Label>
-              <Select value={form.customer_id} onValueChange={(v) => setForm({ ...form, customer_id: v, sale_id: "", selectedRepairs: [] })}>
+              <Select value={form.customer_id} onValueChange={(v) => setForm({ ...form, customer_id: v, sale_id: "" })}>
                 <SelectTrigger className="rounded-xl h-11 bg-background/50 border-white/10 focus-visible:ring-cyan-500"><SelectValue placeholder="Select customer" /></SelectTrigger>
                 <SelectContent className="glass-panel rounded-xl">{customers.map((c) => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Invoice Type</Label>
-              <Select value={form.invoice_type} onValueChange={(v) => setForm({ ...form, invoice_type: v })}>
-                <SelectTrigger className="rounded-xl h-11 bg-background/50 border-white/10 focus-visible:ring-cyan-500"><SelectValue /></SelectTrigger>
-                <SelectContent className="glass-panel rounded-xl">
-                  <SelectItem value="sale" className="rounded-lg">Vehicle Sale</SelectItem>
-                  <SelectItem value="repair" className="rounded-lg">Repair Only</SelectItem>
-                  <SelectItem value="combined" className="rounded-lg">Sale + Repairs</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {(form.invoice_type === "sale" || form.invoice_type === "combined") && customerSales.length > 0 && (
+            {customerSales.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-500">Link Sale</Label>
                 <Select value={form.sale_id} onValueChange={(v) => setForm({ ...form, sale_id: v })}>
@@ -719,33 +677,6 @@ export default function Invoices() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            )}
-
-            {(form.invoice_type === "repair" || form.invoice_type === "combined") && customerRepairs.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-cyan-500">Link Repairs</Label>
-                <div className="space-y-2 max-h-40 overflow-y-auto bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-3">
-                  {customerRepairs.map((r) => (
-                    <div key={r.id} className="flex items-center gap-3 p-2 hover:bg-cyan-500/10 rounded-lg transition-colors cursor-pointer" onClick={() => {
-                        const checked = !form.selectedRepairs.includes(r.id);
-                        setForm({
-                            ...form,
-                            selectedRepairs: checked
-                              ? [...form.selectedRepairs, r.id]
-                              : form.selectedRepairs.filter((id) => id !== r.id),
-                        });
-                    }}>
-                      <Checkbox
-                        checked={form.selectedRepairs.includes(r.id)}
-                        className="data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500 pointer-events-none"
-                      />
-                      <span className="text-sm font-medium text-cyan-500/90">
-                        {getRepairLabel(r)} — ₦{Number(r.repair_cost || 0).toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 
