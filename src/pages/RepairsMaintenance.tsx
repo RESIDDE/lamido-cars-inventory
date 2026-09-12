@@ -47,13 +47,13 @@ import { numberToWords } from "@/lib/numberToWords";
 
 const BANK_ACCOUNTS = {
   servicing: {
-    name: "Lamido CarsMOBILE-SERVICES",
+    name: "Lamido Cars Ltd.",
     account: "1229785752",
     bank: "Zenith Bank",
     label: "Servicing Account"
   },
   painting: {
-    name: "Lamido CarsMOBILE-SERVICES",
+    name: "Lamido Cars Ltd.",
     account: "0126589674",
     bank: "Wema Bank",
     label: "Painting Services Account"

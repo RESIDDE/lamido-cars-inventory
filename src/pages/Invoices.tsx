@@ -195,84 +195,249 @@ export default function Invoices() {
       ? `${(sale as any).vehicles?.year || ""} ${(sale as any).vehicles?.make || ""} ${(sale as any).vehicles?.model || ""}`.trim()
       : "Vehicle Sale";
 
+    const chassisNo = (sale as any)?.vehicles?.vin || "";
+    const formattedDate = new Date(inv.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+
     return `<html><head><title>Invoice ${inv.invoice_number}</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.3; }
-      .date-section { text-align: right; font-weight: 800; font-size: 13px; margin-bottom: 15px; text-transform: uppercase; }
-      .bill-to { margin-bottom: 20px; }
-      .bill-to p { margin: 2px 0; font-size: 13px; }
-      .main-container {
-        background-color: transparent;
-        border-radius: 40px;
-        padding: 20px;
-        position: relative;
-        border: none;
-        min-height: 600px;
+      @page {
+        size: A4 portrait;
+        margin: 8mm 10mm;
       }
-      .content-wrapper { position: relative; z-index: 1; }
-      .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 20px; margin-bottom: 20px; color: #1e293b; text-transform: uppercase; }
+      * { box-sizing: border-box; }
+      body {
+        font-family: 'Roboto', Arial, sans-serif;
+        padding: 8px 12px;
+        max-width: 780px;
+        margin: 0 auto;
+        color: #1a1a1a;
+        line-height: 1.3;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      @media print {
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
       
-      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: transparent; }
-      th, td { border: 1px solid #475569; padding: 8px 10px; text-align: left; font-size: 13px; font-weight: 600; }
-      th { background: transparent; text-transform: uppercase; }
+      .receipt-banner {
+        text-align: center;
+        font-weight: 900;
+        font-size: 16px;
+        margin: 6px 0 10px 0;
+        color: #1a1a1a;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-top: 1px solid #777;
+        border-bottom: 1px solid #777;
+        padding: 5px 0;
+        background: #fdfdfd;
+      }
       
-      .total-row td { border-top: 3px solid #1e293b; font-weight: 900; font-size: 16px; }
-      .amount-words { font-weight: 900; margin-bottom: 20px; font-size: 14px; text-transform: uppercase; }
-      .bank-details { margin-top: 15px; font-size: 12px; }
-      .bank-details h4 { margin: 0 0 5px 0; font-weight: 900; text-transform: uppercase; }
-      .bank-details p { margin: 2px 0; font-weight: 500; }
+      .info-grid {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+      }
+      .info-grid td {
+        vertical-align: top;
+      }
+      
+      .cust-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #777;
+      }
+      .cust-table td {
+        border-bottom: 1px solid #777;
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+      .cust-table tr:last-child td {
+        border-bottom: none;
+      }
+      .cust-label {
+        font-weight: 700;
+        width: 85px;
+        border-right: 1px solid #777;
+        background: #fcfcfc;
+        color: #333;
+      }
+      .cust-value {
+        font-weight: 600;
+        color: #111;
+      }
+      
+      .date-container {
+        border: 1px solid #777;
+        padding: 5px 8px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 11px;
+        background: #fcfcfc;
+      }
+      
+      .main-container {
+        position: relative;
+        background: transparent;
+      }
+      .content-wrapper {
+        position: relative;
+        z-index: 1;
+      }
+      
+      .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 0;
+        background: transparent;
+      }
+      .receipt-table th, .receipt-table td {
+        border: 1px solid #777;
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+      .receipt-table th {
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 10.5px;
+        text-align: center;
+        background: #fcfcfc;
+        line-height: 1.2;
+      }
+      .receipt-table .sn-cell {
+        text-align: center;
+        width: 45px;
+        font-weight: 600;
+      }
+      .receipt-table .qty-cell {
+        text-align: center;
+        width: 45px;
+        font-weight: 600;
+      }
+      .receipt-table .price-cell {
+        text-align: center;
+        width: 125px;
+        font-weight: 600;
+      }
+      .receipt-table .total-cell {
+        text-align: center;
+        width: 125px;
+        font-weight: 600;
+      }
+      .receipt-table .desc-cell {
+        font-weight: 600;
+      }
+      
+      .words-container {
+        border: 1px solid #777;
+        padding: 5px 8px;
+        margin-top: 8px;
+        margin-bottom: 10px;
+        background: #fcfcfc;
+      }
+      .words-label {
+        font-size: 9.5px;
+        font-weight: 700;
+        color: #444;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+      .words-text {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #111;
+      }
     </style></head><body>
-    ${getPrintHeaderHTML(logoBase64)}
-    
-    <div class="date-section">INVOICE NO: ${inv.invoice_number}<br/>DATE: ${new Date(inv.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+    <div style="page-break-inside: avoid; break-inside: avoid;">
+      ${getPrintHeaderHTML(logoBase64)}
+      
+      <div class="receipt-banner">PAYMENT RECEIPT</div>
 
-    <div class="bill-to">
-      <p style="font-weight: 900;">BILL TO:</p>
-      <p><strong>${cust?.name || "—"}</strong></p>
-      ${cust?.phone ? `<p>Tel: ${cust.phone}</p>` : ""}
-      ${cust?.address ? `<p>${cust.address}</p>` : ""}
-    </div>
+      <table class="info-grid">
+        <tr>
+          <td style="width: 60%;">
+            <table class="cust-table">
+              <tr>
+                <td class="cust-label">NAME:</td>
+                <td class="cust-value">${cust?.name || "—"}</td>
+              </tr>
+              <tr>
+                <td class="cust-label">ADDRESS:</td>
+                <td class="cust-value">${cust?.address || "—"}</td>
+              </tr>
+              <tr>
+                <td class="cust-label">PHONE NO.</td>
+                <td class="cust-value">${cust?.phone || "—"}</td>
+              </tr>
+            </table>
+          </td>
+          <td style="width: 5%;"></td>
+          <td style="width: 35%; vertical-align: top;">
+            <div class="date-container">
+              DATE: ${formattedDate}
+            </div>
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 6px;">
+              <div style="width: 14px; height: 14px; border: 1px solid #777; background: #fff;"></div>
+            </div>
+          </td>
+        </tr>
+      </table>
 
-    <div class="main-container">
-      ${getPrintWatermarkHTML(logoBase64)}
-      <div class="content-wrapper">
-        <h2 class="bill-title">OFFICIAL INVOICE</h2>
-        
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 40px; text-align: center;">#</th>
-              <th>DESCRIPTION</th>
-              <th style="text-align: right;">AMOUNT (₦)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="text-align: center;">1.</td>
-              <td>VEHICLE SALE: ${vehicleInfo}</td>
-              <td style="text-align: right;">₦${totalAmount.toLocaleString()}</td>
-            </tr>
-            <tr class="total-row">
-              <td colspan="2" style="text-align: right;">GRAND TOTAL</td>
-              <td style="text-align: right; white-space: nowrap;">₦${totalAmount.toLocaleString()}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="main-container">
+        ${getPrintWatermarkHTML(logoBase64)}
+        <div class="content-wrapper">
+          
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th style="width: 45px;">S/N</th>
+                <th>DESCRIPTION/SPECIFICATION</th>
+                <th style="width: 45px;">QTY</th>
+                <th style="width: 125px;">UNIT PRICE<br/>₦</th>
+                <th style="width: 125px;">TOTAL<br/>₦</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="sn-cell" style="vertical-align: top; padding-top: 8px;">1</td>
+                <td class="desc-cell" style="vertical-align: top; padding-top: 8px;">
+                  ${vehicleInfo}
+                  ${chassisNo ? `<br/><br/><span style="font-size: 10.5px; font-weight: 700;">CHASIS NO: ${chassisNo}</span>` : ""}
+                </td>
+                <td class="qty-cell" style="vertical-align: top; padding-top: 8px;">1</td>
+                <td class="price-cell" style="vertical-align: top; padding-top: 8px;">${totalAmount.toLocaleString()}</td>
+                <td class="total-cell" style="vertical-align: top; padding-top: 8px;">${totalAmount.toLocaleString()}</td>
+              </tr>
+              <!-- Vertical gridline extension spacer matching authentic layout -->
+              <tr style="height: 100px;">
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr style="font-weight: 700;">
+                <td style="border-right: 1px solid #777;"></td>
+                <td style="text-align: right; font-weight: 800; font-size: 11px; padding-right: 10px;">TOTAL</td>
+                <td></td>
+                <td></td>
+                <td class="total-cell" style="font-weight: 800;">${totalAmount.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
 
-        <div class="amount-words">
-          AMOUNT IN WORDS: ${numberToWords(totalAmount)}
-        </div>
+          <div class="words-container">
+            <div class="words-label">AMOUNT IN WORDS:</div>
+            <div class="words-text">${numberToWords(totalAmount)}</div>
+          </div>
 
-        <div class="bank-details">
-          <h4>BANK DETAILS:</h4>
-          <p>Account name: <strong>Lamido CarsMOBILE -SERVICES</strong></p>
-          <p>Account Number: <strong>1229785752</strong></p>
-          <p>Bank: <strong>ZENITH BANK</strong></p>
         </div>
       </div>
+      ${getPrintFooterHTML()}
     </div>
-    ${getPrintFooterHTML()}
     </body></html>`;
   };
 

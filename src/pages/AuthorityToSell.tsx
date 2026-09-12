@@ -491,7 +491,7 @@ export default function AuthorityToSell() {
             </div>
             <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">Authority to Sell</h1>
             <p className="text-xs text-white/40 mt-0.5 max-w-lg">
-              Create, manage, and search Bee Tee Automobile authorization agreements.
+              Create, manage, and search Lamido Cars authorization agreements.
             </p>
           </div>
         </div>

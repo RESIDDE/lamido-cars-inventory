@@ -3,26 +3,65 @@ import React from 'react';
 // For use inside React DOM trees (like AuthorityToSell.tsx)
 export function PrintFooter() {
   return (
-    <div className="mt-12 print:mt-4 pt-4 border-t border-gray-200 text-center opacity-70">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[#1D3557]">
-        BEE TEE AUTOMOBILE — Sales • Services • Maintenance • Modification • Logistics
+    <div className="mt-4 pt-2 break-inside-avoid print:break-inside-avoid relative">
+      {/* Signature section */}
+      <div className="flex justify-between items-end mb-4 px-1">
+        <div className="text-left">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-800 mb-1.5">CUSTOMER'S SIGN</p>
+          <div className="w-[160px] h-[36px] border border-gray-400 bg-white"></div>
+        </div>
+        <div className="text-left">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-800 mb-1.5">LAMIDO CARS LTD. SIGN</p>
+          <div className="w-[160px] h-[36px] border border-gray-400 bg-white"></div>
+        </div>
+      </div>
+
+      {/* Thanks message */}
+      <p className="text-center text-[12px] italic text-gray-700 my-3" style={{ fontFamily: 'Georgia, serif' }}>
+        Thanks for your patronage
       </p>
-      <p className="text-[9px] text-gray-500 mt-1 font-sans">
-        Plot 36A & 36B Wole Soyinka way, Cadastral zone B15, Jahi, Abuja.
-      </p>
+
+      {/* Bottom geometric accent: Blue polygon on left + red stripe */}
+      <div className="relative mt-2 h-7 w-full overflow-hidden">
+        <div
+          className="absolute left-0 bottom-0 w-9 h-7 bg-[#1E3A8A]"
+          style={{ clipPath: 'polygon(0 100%, 100% 100%, 75% 0, 0 45%)' }}
+        />
+        <div className="absolute left-7 right-0 bottom-0 h-1 bg-[#C0392B]" />
+      </div>
     </div>
   );
 }
 
 export function getPrintFooterHTML() {
   return `
-    <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; text-align: center; opacity: 0.8;">
-      <p style="font-family: Arial, sans-serif; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #1D3557; margin: 0;">
-        BEE TEE AUTOMOBILE — Sales • Services • Maintenance • Modification • Logistics
+    <div style="margin-top: 14px; padding-top: 4px; page-break-inside: avoid; break-inside: avoid; position: relative;">
+      <!-- Signature section -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; padding: 0 2px;">
+        <div style="text-align: left;">
+          <p style="font-family: Arial, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #222; margin: 0 0 5px 0;">CUSTOMER'S SIGN</p>
+          <div style="width: 155px; height: 34px; border: 1px solid #777; background: #fff;"></div>
+        </div>
+        <div style="text-align: left;">
+          <p style="font-family: Arial, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #222; margin: 0 0 5px 0;">LAMIDO CARS LTD. SIGN</p>
+          <div style="width: 155px; height: 34px; border: 1px solid #777; background: #fff;"></div>
+        </div>
+      </div>
+      
+      <!-- Thanks message -->
+      <p style="text-align: center; font-family: Georgia, serif; font-size: 12px; font-style: italic; color: #444; margin: 10px 0 14px 0;">
+        Thanks for your patronage
       </p>
-      <p style="font-family: Arial, sans-serif; font-size: 9px; color: #64748b; margin-top: 4px; margin-bottom: 0;">
-        Plot 36A & 36B Wole Soyinka way, Cadastral zone B15, Jahi, Abuja.
-      </p>
+
+      <!-- Bottom Graphic Bar -->
+      <div style="position: relative; height: 26px; width: 100%; margin-top: 6px;">
+        <svg style="position: absolute; left: 0; bottom: 0; width: 44px; height: 26px;" viewBox="0 0 44 26">
+          <polygon points="0,12 32,0 44,26 0,26" fill="#1E3A8A" />
+        </svg>
+        <div style="position: absolute; left: 30px; right: 0; bottom: 0; height: 4px; background: #C0392B;"></div>
+      </div>
     </div>
   `;
 }
+
+

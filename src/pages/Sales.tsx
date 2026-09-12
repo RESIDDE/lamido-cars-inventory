@@ -505,7 +505,7 @@ export default function Sales() {
             </div>
             <div class="sig-box">
                ${sale.rep_signature ? `<img src="${sale.rep_signature}" class="signature-img" />` : '<div style="height:40px"></div>'}
-              <p style="border-top: 1px solid #1a1a1a; padding-top: 4px; margin-top: 0;"><strong>FOR: Lamido CarsMOBILE</strong></p>
+              <p style="border-top: 1px solid #1a1a1a; padding-top: 4px; margin-top: 0;"><strong>FOR: Lamido Cars Ltd.</strong></p>
             </div>
           </div>
         </div>
@@ -651,7 +651,7 @@ export default function Sales() {
           </div>
           <div class="sig-box">
             ${sale.rep_signature ? `<img src="${sale.rep_signature}" class="signature-img" />` : '<div style="height:45px"></div>'}
-            <p style="border-top: 1px solid #1a1a1a; padding-top: 5px;"><strong>FOR: Lamido CarsMOBILE</strong></p>
+            <p style="border-top: 1px solid #1a1a1a; padding-top: 5px;"><strong>FOR: Lamido Cars Ltd.</strong></p>
           </div>
         </div>
       </div>
