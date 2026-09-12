@@ -431,7 +431,6 @@ export default function Invoices() {
   };
 
   const customerSales = form.customer_id ? sales.filter((s) => s.customer_id === form.customer_id) : [];
-  const customerRepairs = form.customer_id ? repairs.filter((r) => (r as any).customer_id === form.customer_id) : [];
 
   return (
     <div className="space-y-8 animate-fade-up pb-10 max-w-6xl mx-auto">
@@ -446,7 +445,7 @@ export default function Invoices() {
             Invoices
           </h1>
           <p className="text-xs text-white/40 mt-0.5">
-            Generate and manage professional invoices for sales and repairs.
+            Generate and manage professional vehicle sales invoices.
           </p>
         </div>
         <div className="shrink-0">
