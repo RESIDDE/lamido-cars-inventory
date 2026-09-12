@@ -166,7 +166,7 @@ export default function AdvancedReport() {
   const { data: repairs = [] } = useQuery({
     queryKey: ["report_repairs", refreshKey],
     queryFn: async () => {
-      const { data } = await supabase.from("repair_jobs").select("*").order("created_at", { ascending: false });
+      const { data } = await (supabase as any).from("repairs").select("*").order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -174,7 +174,7 @@ export default function AdvancedReport() {
   const { data: expenses = [] } = useQuery({
     queryKey: ["report_expenses", refreshKey],
     queryFn: async () => {
-      const { data } = await supabase.from("expenses").select("*").order("expense_date", { ascending: false });
+      const { data } = await (supabase as any).from("expenses").select("*").order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -182,7 +182,7 @@ export default function AdvancedReport() {
   const { data: quotes = [] } = useQuery({
     queryKey: ["report_quotes", refreshKey],
     queryFn: async () => {
-      const { data } = await supabase.from("performance_quotes").select("*").order("created_at", { ascending: false });
+      const { data } = await (supabase as any).from("performance_quotes").select("*").order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -190,7 +190,7 @@ export default function AdvancedReport() {
   const { data: auditLogs = [] } = useQuery({
     queryKey: ["report_audit", refreshKey],
     queryFn: async () => {
-      const { data } = await supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(200);
+      const { data } = await (supabase as any).from("audit_logs").select("*").order("created_at", { ascending: false }).limit(200);
       return data || [];
     },
   });
@@ -198,7 +198,7 @@ export default function AdvancedReport() {
   const { data: inspections = [] } = useQuery({
     queryKey: ["report_inspections", refreshKey],
     queryFn: async () => {
-      const { data } = await supabase.from("inspection_reports").select("*").order("created_at", { ascending: false });
+      const { data } = await (supabase as any).from("inspections").select("*").order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -391,10 +391,7 @@ export default function AdvancedReport() {
       { metric: "Repair Jobs", value: String(fRepairs.length) },
       { metric: "Business Health Score", value: `${healthScore}/100` },
     ];
-    exportToExcel(rows, "lamido_cars_advanced_report", [
-      { key: "metric", label: "Metric" },
-      { key: "value", label: "Value" },
-    ]);
+    exportToExcel(rows, "lamido_cars_advanced_report");
     logAction("EXPORT", "AdvancedReport", "summary");
     toast.success("Report exported to Excel");
   };

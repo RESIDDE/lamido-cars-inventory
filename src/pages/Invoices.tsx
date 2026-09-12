@@ -189,13 +189,11 @@ export default function Invoices() {
   const getInvoiceHTML = (inv: any, logoBase64?: string) => {
     const cust = customerMap[inv.customer_id];
     const sale = sales.find((s) => s.id === inv.sale_id);
-    const linkedRepairIds = invoiceRepairLinks.filter((l) => l.invoice_id === inv.id).map((l) => l.repair_id);
-    const linkedRepairs = repairs.filter((r) => linkedRepairIds.includes(r.id));
     const totalAmount = Number(inv.total) || 0;
 
     const vehicleInfo = sale
       ? `${(sale as any).vehicles?.year || ""} ${(sale as any).vehicles?.make || ""} ${(sale as any).vehicles?.model || ""}`.trim()
-      : "";
+      : "Vehicle Sale";
 
     return `<html><head><title>Invoice ${inv.invoice_number}</title>
     <style>
@@ -250,61 +248,11 @@ export default function Invoices() {
             </tr>
           </thead>
           <tbody>
-            ${sale ? `<tr><td style="text-align: center;">1.</td><td>VEHICLE SALE: ${vehicleInfo}</td><td style="text-align: right;">₦${Number(sale.sale_price).toLocaleString()}</td></tr>` : ""}
-            ${linkedRepairs.map((r: any, i) => {
-              const baseNum = sale ? 2 : 1;
-              const hasParts = r.replacement_parts_list && (r.replacement_parts_list as any).length > 0;
-              
-              let repairRows = `
-                <tr>
-                  <td style="text-align: center;">${baseNum + i}.</td>
-                  <td style="font-weight: 800;">REPAIR SERVICE: ${getRepairLabel(r)}</td>
-                  <td style="text-align: right; font-weight: 800;">₦${Number(r.repair_cost || 0).toLocaleString()}</td>
-                </tr>
-              `;
-
-              if (hasParts) {
-                repairRows += (r.replacement_parts_list as any).map((p: any) => `
-                  <tr>
-                    <td></td>
-                    <td style="padding-left: 30px; font-size: 12px; color: #475569;">• ${p.name.toUpperCase()}</td>
-                    <td style="text-align: right; font-size: 12px; color: #475569;">₦${(Number(p.price) || 0).toLocaleString()}</td>
-                  </tr>
-                `).join('');
-                
-                if (Number(r.labour_total) > 0) {
-                  repairRows += `
-                    <tr>
-                      <td></td>
-                      <td style="padding-left: 30px; font-size: 12px; color: #475569;">• LABOUR CHARGES</td>
-                      <td style="text-align: right; font-size: 12px; color: #475569;">₦${Number(r.labour_total).toLocaleString()}</td>
-                    </tr>
-                  `;
-                }
-
-                if (Number(r.other_charges) > 0) {
-                  repairRows += `
-                    <tr>
-                      <td></td>
-                      <td style="padding-left: 30px; font-size: 12px; color: #475569;">• OTHER SERVICES</td>
-                      <td style="text-align: right; font-size: 12px; color: #475569;">₦${Number(r.other_charges).toLocaleString()}</td>
-                    </tr>
-                  `;
-                }
-
-                if (Number(r.vat) > 0) {
-                  repairRows += `
-                    <tr>
-                      <td></td>
-                      <td style="padding-left: 30px; font-size: 12px; color: #475569;">• VAT / TAX</td>
-                      <td style="text-align: right; font-size: 12px; color: #475569;">₦${Number(r.vat).toLocaleString()}</td>
-                    </tr>
-                  `;
-                }
-              }
-
-              return repairRows;
-            }).join("")}
+            <tr>
+              <td style="text-align: center;">1.</td>
+              <td>VEHICLE SALE: ${vehicleInfo}</td>
+              <td style="text-align: right;">₦${totalAmount.toLocaleString()}</td>
+            </tr>
             <tr class="total-row">
               <td colspan="2" style="text-align: right;">GRAND TOTAL</td>
               <td style="text-align: right; white-space: nowrap;">₦${totalAmount.toLocaleString()}</td>
@@ -522,7 +470,6 @@ export default function Invoices() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {paged.map((inv) => {
-                const linkedCount = invoiceRepairLinks.filter((l) => l.invoice_id === inv.id).length;
                 return (
                   <div key={inv.id} className="bento-card p-6 flex flex-col justify-between group">
                     <div>
@@ -545,7 +492,6 @@ export default function Invoices() {
                         <p className="text-sm font-medium text-muted-foreground truncate">{customerMap[inv.customer_id]?.name || "Unknown Customer"}</p>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-foreground/60 capitalize bg-foreground/5 px-2 py-1 rounded-lg">{inv.invoice_type}</span>
-                          {linkedCount > 0 && <span className="text-xs text-foreground/60 bg-foreground/5 px-2 py-1 rounded-lg">{linkedCount} repair(s)</span>}
                         </div>
                       </div>
                       
