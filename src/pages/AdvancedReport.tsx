@@ -13,14 +13,17 @@ import {
   ArrowUpRight, ArrowDownRight, Target, Calendar,
   Layers, Activity, PieChart as PieChartIcon, CreditCard,
   Banknote, ClipboardList, Star, Trophy, AlertCircle, Info,
-  MessageSquare, Building2,
+  MessageSquare, Building2, ChevronDown, FileSpreadsheet, Sheet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { exportToExcel, printTable } from "@/lib/exportHelpers";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { exportToExcel, exportToCSV, printHTMLDocument, exportHTMLToPDF } from "@/lib/exportHelpers";
 import { toast } from "sonner";
 import { logAction } from "@/lib/logger";
 
@@ -372,9 +375,195 @@ export default function AdvancedReport() {
   const healthColor = healthScore >= 75 ? "text-emerald-500" : healthScore >= 50 ? "text-amber-500" : "text-red-500";
   const healthBg = healthScore >= 75 ? "bg-emerald-500" : healthScore >= 50 ? "bg-amber-500" : "bg-red-500";
 
-  // ── Export ────────────────────────────────────────────────────────────────
-  const handleExport = () => {
-    const rows = [
+  // ── Document Report Generation ──────────────────────────────────────────
+  const getReportHTML = () => {
+    const periodLabel = selectedMonth === "all" ? "All Time" : (MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth);
+    const healthText = healthScore >= 75 ? "Excellent" : healthScore >= 50 ? "Good" : "Needs Attention";
+
+    return `
+      <div style="text-align: center; margin-top: 15px; margin-bottom: 20px;">
+        <h2 style="font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase; color: #0f172a; letter-spacing: -0.5px;">EXECUTIVE BUSINESS PERFORMANCE REPORT</h2>
+        <p style="font-size: 11px; color: #64748b; margin-top: 4px;">Reporting Period: <strong>${periodLabel}</strong> | Generated: <strong>${generatedAt}</strong></p>
+      </div>
+
+      <!-- Business Health & Executive Summary -->
+      <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; background: #f8fafc;">
+        <table style="width: 100%; border: none; margin: 0;">
+          <tr style="background: transparent;">
+            <td style="border: none; width: 35%; vertical-align: middle; padding-right: 15px;">
+              <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b;">Business Health Score</div>
+              <div style="font-size: 28px; font-weight: 900; color: ${healthScore >= 75 ? '#166534' : healthScore >= 50 ? '#b45309' : '#991b1b'};">
+                ${healthScore}/100 <span style="font-size: 13px; font-weight: 700;">(${healthText})</span>
+              </div>
+            </td>
+            <td style="border: none; vertical-align: top; border-left: 1px solid #e2e8f0; padding-left: 15px;">
+              <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 6px;">Executive Insights</div>
+              <ul style="margin: 0; padding-left: 16px; font-size: 11px; color: #334155; line-height: 1.5;">
+                ${insights.map(i => `<li style="margin-bottom: 3px;">${i.message}</li>`).join("")}
+              </ul>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Financial Performance Summary -->
+      <div class="section-title">1. Financial Performance Summary</div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-lbl">Total Revenue</div>
+          <div class="kpi-val" style="color: #166534;">₦${totalRevenue.toLocaleString()}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-lbl">Gross Profit</div>
+          <div class="kpi-val" style="color: #0284c7;">₦${totalProfit.toLocaleString()}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-lbl">Operating Expenses</div>
+          <div class="kpi-val" style="color: #b91c1c;">₦${totalExpenses.toLocaleString()}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-lbl">Net Profit</div>
+          <div class="kpi-val" style="color: ${netProfit >= 0 ? '#7c3aed' : '#b91c1c'};">₦${netProfit.toLocaleString()}</div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Financial Indicator</th>
+            <th>Amount / Ratio</th>
+            <th>Description & Context</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Total Sales Revenue</td><td><strong>₦${totalRevenue.toLocaleString()}</strong></td><td>Total gross sales revenue realized from vehicle sales</td></tr>
+          <tr><td>Cost of Goods Sold (COGS)</td><td>₦${totalCostOfGoods.toLocaleString()}</td><td>Total acquisition & purchase cost of sold inventory</td></tr>
+          <tr><td>Gross Profit</td><td><strong>₦${totalProfit.toLocaleString()}</strong></td><td>Total gross profit before operational expenses</td></tr>
+          <tr><td>Total Operating Expenses</td><td>₦${totalExpenses.toLocaleString()}</td><td>Total operational expenses, logistics, fuel, and overhead</td></tr>
+          <tr><td>Net Profit</td><td><strong style="color: ${netProfit >= 0 ? '#166534' : '#b91c1c'};">₦${netProfit.toLocaleString()}</strong></td><td>Net business profit after operating expenses</td></tr>
+          <tr><td>Net Profit Margin</td><td><strong>${profitMargin.toFixed(1)}%</strong></td><td>Percentage return on total revenue</td></tr>
+          <tr><td>Workshop Repair Revenue</td><td>₦${repairRevenue.toLocaleString()}</td><td>Revenue realized from completed repairs & maintenance</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Inventory & Sales -->
+      <div class="section-title">2. Inventory & Sales Performance</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Inventory Metric</th>
+            <th>Quantity / Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Total Inventory Count</td><td>${vehicles.length} vehicles</td></tr>
+          <tr><td>Available Stock</td><td>${availableVehicles.length} vehicles</td></tr>
+          <tr><td>Total Sold Vehicles</td><td>${soldVehicles.length} vehicles</td></tr>
+          <tr><td>Average Turnover Velocity</td><td>${avgDaysToSell > 0 ? `${avgDaysToSell} days` : '—'}</td></tr>
+        </tbody>
+      </table>
+
+      ${topVehicles.length > 0 ? `
+      <p style="font-size: 11px; font-weight: 700; margin-top: 10px; margin-bottom: 6px;">Top Performing Sales (Period)</p>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Vehicle Description</th>
+            <th>Selling Price</th>
+            <th>Gross Profit</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${topVehicles.map((v, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td><strong>${v.name}</strong></td>
+              <td>₦${v.revenue.toLocaleString()}</td>
+              <td><strong style="color: #166534;">₦${v.profit.toLocaleString()}</strong></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+      ` : ''}
+
+      <!-- Customers & Leads -->
+      <div class="section-title">3. Customers & Lead Pipeline</div>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-lbl">Total Customers</div><div class="kpi-val">${customers.length}</div></div>
+        <div class="kpi-card"><div class="kpi-lbl">New Customers (Period)</div><div class="kpi-val">${fCustomers.length}</div></div>
+        <div class="kpi-card"><div class="kpi-lbl">Inquiries</div><div class="kpi-val">${inquiries.length}</div></div>
+        <div class="kpi-card"><div class="kpi-lbl">Conversion Rate</div><div class="kpi-val">${conversionRate.toFixed(1)}%</div></div>
+      </div>
+
+      <!-- Expenses Breakdown -->
+      ${expenseCategoryBreak.length > 0 ? `
+      <div class="section-title">4. Operating Expenses Breakdown</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Total Expense (₦)</th>
+            <th>% Share</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${expenseCategoryBreak.map(c => {
+            const pct = totalExpenses > 0 ? ((c.value / totalExpenses) * 100).toFixed(1) : "0";
+            return `
+              <tr>
+                <td>${c.name}</td>
+                <td>₦${c.value.toLocaleString()}</td>
+                <td>${pct}%</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+      ` : ''}
+
+      <!-- Workshop Repairs -->
+      ${repairStatus.length > 0 ? `
+      <div class="section-title">5. Workshop & Repairs Breakdown</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Repair Job Status</th>
+            <th>Number of Jobs</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${repairStatus.map(r => `
+            <tr>
+              <td style="text-transform: capitalize;">${r.name.replace(/_/g, " ")}</td>
+              <td>${r.value}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+      ` : ''}
+    `;
+  };
+
+  const handlePrint = () => {
+    printHTMLDocument(
+      `Lamido Cars — Executive Business Report (${selectedMonth === "all" ? "All Time" : selectedMonth})`,
+      getReportHTML()
+    );
+    logAction("PRINT", "AdvancedReport", "full_report");
+  };
+
+  const handleExportPDF = () => {
+    exportHTMLToPDF(
+      `Lamido Cars — Executive Business Report (${selectedMonth === "all" ? "All Time" : selectedMonth})`,
+      `lamido_cars_advanced_report_${selectedMonth}`,
+      getReportHTML()
+    );
+    logAction("EXPORT_PDF", "AdvancedReport", "full_report");
+  };
+
+  const handleExportExcel = () => {
+    const summaryRows = [
       { metric: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}` },
       { metric: "Gross Profit", value: `₦${totalProfit.toLocaleString()}` },
       { metric: "Total Expenses", value: `₦${totalExpenses.toLocaleString()}` },
@@ -391,25 +580,27 @@ export default function AdvancedReport() {
       { metric: "Repair Jobs", value: String(fRepairs.length) },
       { metric: "Business Health Score", value: `${healthScore}/100` },
     ];
-    exportToExcel(rows, "lamido_cars_advanced_report");
-    logAction("EXPORT", "AdvancedReport", "summary");
-    toast.success("Report exported to Excel");
+    exportToExcel(summaryRows, `lamido_cars_advanced_report_${selectedMonth}`);
+    logAction("EXPORT_EXCEL", "AdvancedReport", "summary");
   };
 
-  const handlePrint = () => {
-    printTable(
-      `Lamido Cars — Advanced Business Report (${selectedMonth === "all" ? "All Time" : selectedMonth})`,
-      [
-        { metric: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}` },
-        { metric: "Net Profit", value: `₦${netProfit.toLocaleString()}` },
-        { metric: "Profit Margin", value: `${profitMargin.toFixed(1)}%` },
-        { metric: "Total Sales", value: String(fSales.length) },
-        { metric: "Vehicles in Stock", value: String(availableVehicles.length) },
-        { metric: "Conversion Rate", value: `${conversionRate.toFixed(1)}%` },
-        { metric: "Health Score", value: `${healthScore}/100` },
-      ],
-      [{ key: "metric", label: "Metric" }, { key: "value", label: "Value" }]
-    );
+  const handleExportCSV = () => {
+    const summaryRows = [
+      { metric: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}` },
+      { metric: "Gross Profit", value: `₦${totalProfit.toLocaleString()}` },
+      { metric: "Total Expenses", value: `₦${totalExpenses.toLocaleString()}` },
+      { metric: "Net Profit", value: `₦${netProfit.toLocaleString()}` },
+      { metric: "Profit Margin", value: `${profitMargin.toFixed(1)}%` },
+      { metric: "Total Sales", value: String(fSales.length) },
+      { metric: "Vehicles in Stock", value: String(availableVehicles.length) },
+      { metric: "Vehicles Sold", value: String(soldVehicles.length) },
+      { metric: "Total Customers", value: String(customers.length) },
+      { metric: "New Customers (Period)", value: String(fCustomers.length) },
+      { metric: "Conversion Rate", value: `${conversionRate.toFixed(1)}%` },
+      { metric: "Business Health Score", value: `${healthScore}/100` },
+    ];
+    exportToCSV(summaryRows, `lamido_cars_advanced_report_${selectedMonth}`);
+    logAction("EXPORT_CSV", "AdvancedReport", "summary");
   };
 
   return (
@@ -442,11 +633,28 @@ export default function AdvancedReport() {
           <Button variant="outline" size="sm" onClick={() => setRefreshKey(k => k + 1)} className="rounded-xl border-white/10 hover:bg-white/5 h-10">
             <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExport} className="rounded-xl border-white/10 hover:bg-white/5 h-10">
-            <Download className="h-3.5 w-3.5 mr-1.5" /> Export
-          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="rounded-xl border-white/10 hover:bg-white/5 h-10 gap-1.5">
+                <Download className="h-3.5 w-3.5" /> Export Document <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="glass-panel rounded-xl">
+              <DropdownMenuItem onClick={handleExportPDF} className="cursor-pointer gap-2">
+                <FileText className="h-4 w-4 text-red-400" /> Export PDF Document
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportExcel} className="cursor-pointer gap-2">
+                <FileSpreadsheet className="h-4 w-4 text-emerald-400" /> Export Excel (.xls)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportCSV} className="cursor-pointer gap-2">
+                <Sheet className="h-4 w-4 text-sky-400" /> Export CSV (.csv)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button variant="outline" size="sm" onClick={handlePrint} className="rounded-xl border-white/10 hover:bg-white/5 h-10">
-            <Printer className="h-3.5 w-3.5 mr-1.5" /> Print
+            <Printer className="h-3.5 w-3.5 mr-1.5" /> Print Report
           </Button>
         </div>
       </div>
