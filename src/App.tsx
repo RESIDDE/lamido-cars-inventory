@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { RoleGuard } from "@/components/RoleGuard";
 import { useAuth } from "@/hooks/useAuth";
 import { PermissionsRealtimeSync } from "@/hooks/usePermissions";
+import { ThemeProvider } from "next-themes";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -20,7 +21,6 @@ const VehicleForm = lazy(() => import("./pages/VehicleForm"));
 const VehicleDetail = lazy(() => import("./pages/VehicleDetail"));
 const Customers = lazy(() => import("./pages/Customers"));
 const Sales = lazy(() => import("./pages/Sales"));
-const Invoices = lazy(() => import("./pages/Invoices"));
 const Inquiries = lazy(() => import("./pages/Inquiries"));
 const AuthorityToSell = lazy(() => import("./pages/AuthorityToSell"));
 const PerformanceQuotes = lazy(() => import("./pages/PerformanceQuotes"));
@@ -99,7 +99,6 @@ function AppRoutes() {
                 <Route path="/source-company/:name" element={<RoleGuard page="vehicles"><SourceCompanyDetails /></RoleGuard>} />
                 <Route path="/customers"         element={<RoleGuard page="customers"><Customers /></RoleGuard>} />
                 <Route path="/sales"             element={<RoleGuard page="sales"><Sales /></RoleGuard>} />
-                <Route path="/invoices"          element={<RoleGuard page="invoices"><Invoices /></RoleGuard>} />
                 <Route path="/inquiries"         element={<RoleGuard page="inquiries"><Inquiries /></RoleGuard>} />
                 <Route path="/authority-to-sell" element={<RoleGuard page="authority-to-sell"><AuthorityToSell /></RoleGuard>} />
                 <Route path="/performance-quotes" element={<RoleGuard page="performance-quotes"><PerformanceQuotes /></RoleGuard>} />
@@ -120,15 +119,17 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        {/* Single global Realtime listener — must be inside QueryClientProvider */}
-        <PermissionsRealtimeSync />
-        <AppRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          {/* Single global Realtime listener — must be inside QueryClientProvider */}
+          <PermissionsRealtimeSync />
+          <AppRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

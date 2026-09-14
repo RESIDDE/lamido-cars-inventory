@@ -7,7 +7,6 @@ export type PageKey =
   | "vehicles"
   | "customers"
   | "sales"
-  | "invoices"
   | "inquiries"
   | "authority-to-sell"
   | "performance-quotes"
@@ -18,7 +17,6 @@ export const ALL_PAGES: { key: PageKey; label: string; path: string }[] = [
   { key: "vehicles",           label: "Lamido Vehicles",  path: "/vehicles" },
   { key: "customers",          label: "Customers",        path: "/customers" },
   { key: "sales",              label: "Sales",            path: "/sales" },
-  { key: "invoices",           label: "Invoices",         path: "/invoices" },
   { key: "inquiries",          label: "Inquiries",        path: "/inquiries" },
   { key: "authority-to-sell",  label: "Auth. Form",       path: "/authority-to-sell" },
   { key: "performance-quotes", label: "Proforma Quotes",  path: "/performance-quotes" },
@@ -39,9 +37,9 @@ export const DEFAULT_PERMISSIONS: PermissionsMap = {
     edit: ALL_PAGES.map((p) => p.key),
   },
   sales: {
-    view: ["dashboard", "vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
-    create: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
-    edit: ["vehicles", "customers", "sales", "invoices", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
+    view: ["dashboard", "vehicles", "customers", "sales", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
+    create: ["vehicles", "customers", "sales", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
+    edit: ["vehicles", "customers", "sales", "inquiries", "performance-quotes", "authority-to-sell", "expenses"],
   },
   mechanic: {
     view: ["dashboard", "vehicles", "expenses"],

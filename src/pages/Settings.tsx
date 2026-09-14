@@ -47,30 +47,30 @@ const getRoleDisplayLabel = (roleKey: string, customLabels?: Record<string, stri
 };
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  super_admin: { label: "Super Admin", color: "text-white/90 font-bold", icon: <ShieldCheck className="w-3.5 h-3.5 text-white/70" /> },
-  admin: { label: "Admin", color: "text-emerald-400 font-semibold", icon: <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> },
-  sales: { label: "Sales", color: "text-sky-400 font-semibold", icon: <User className="w-3.5 h-3.5 text-sky-400" /> },
-  mechanic: { label: "Mechanic", color: "text-violet-400 font-semibold", icon: <Settings2 className="w-3.5 h-3.5 text-violet-400" /> },
-  pending: { label: "Pending", color: "text-rose-400 font-semibold", icon: <AlertTriangle className="w-3.5 h-3.5 text-rose-400" /> },
+  super_admin: { label: "Super Admin", color: "text-primary font-bold", icon: <ShieldCheck className="w-3.5 h-3.5 text-primary" /> },
+  admin: { label: "Admin", color: "text-emerald-600 dark:text-emerald-400 font-semibold", icon: <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> },
+  sales: { label: "Sales", color: "text-sky-600 dark:text-sky-400 font-semibold", icon: <User className="w-3.5 h-3.5 text-sky-500" /> },
+  mechanic: { label: "Mechanic", color: "text-violet-600 dark:text-violet-400 font-semibold", icon: <Settings2 className="w-3.5 h-3.5 text-violet-500" /> },
+  pending: { label: "Pending", color: "text-rose-600 dark:text-rose-400 font-semibold", icon: <AlertTriangle className="w-3.5 h-3.5 text-rose-500" /> },
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  CREATE: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-  UPDATE: "bg-sky-500/10 text-sky-400 border border-sky-500/20",
-  DELETE: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
-  LOGIN: "bg-white/10 text-white/80 border border-white/15",
-  LOGOUT: "bg-white/5 text-white/50 border border-white/10",
-  SIGNUP: "bg-white/10 text-white/80 border border-white/15",
-  INVITE: "bg-violet-500/10 text-violet-400 border border-violet-500/20",
-  ROLE_CHANGE: "bg-sky-500/10 text-sky-400 border border-sky-500/20",
-  EXPORT: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
-  PRINT: "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20",
-  VIEW: "bg-white/5 text-white/40",
-  SEARCH: "bg-white/5 text-white/40",
-  STATUS_CHANGE: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
-  PERMISSION_CHANGE: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
-  PAYMENT: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-  SIGNATURE: "bg-teal-500/10 text-teal-400 border border-teal-500/20",
+  CREATE: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+  UPDATE: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20",
+  DELETE: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20",
+  LOGIN: "bg-muted text-foreground border border-border",
+  LOGOUT: "bg-muted text-muted-foreground border border-border",
+  SIGNUP: "bg-muted text-foreground border border-border",
+  INVITE: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20",
+  ROLE_CHANGE: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20",
+  EXPORT: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20",
+  PRINT: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20",
+  VIEW: "bg-muted text-muted-foreground",
+  SEARCH: "bg-muted text-muted-foreground",
+  STATUS_CHANGE: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+  PERMISSION_CHANGE: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20",
+  PAYMENT: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+  SIGNATURE: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20",
 };
 
 // Isolated Supabase client for inviting users without blowing away super admin's session
@@ -130,144 +130,97 @@ export default function Settings() {
   const [serviceIntervalDays, setServiceIntervalDays] = useState<string>("0");
   const [intervalSaving, setIntervalSaving] = useState(false);
 
+  const claimSuperAdmin = async () => {
+    if (!user) return toast.error("Not logged in");
+    const { error } = await (supabase as any)
+      .from("user_roles")
+      .upsert({ user_id: user.id, role: "admin" }, { onConflict: "user_id" });
+    if (error) {
+      toast.error("Failed: " + error.message);
+    } else {
+      toast.success("Admin role granted! Reloading...");
+      setTimeout(() => window.location.reload(), 900);
+    }
+  };
+
   // Access check fallback
   if (role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center gap-6 animate-fade-up px-4">
-        <div className="p-5 bg-white/5 border border-white/10 rounded-3xl">
-          <ShieldCheck className="w-12 h-12 text-white/80" />
+        <div className="p-5 bg-card border border-border rounded-3xl shadow-sm">
+          <ShieldCheck className="w-12 h-12 text-primary" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold tracking-tight text-white/90">Claim Admin Access</h2>
-          <p className="text-white/40 max-w-sm text-xs">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Claim Admin Access</h2>
+          <p className="text-muted-foreground max-w-sm text-xs">
             You don't have an admin role assigned yet. Click below to claim Admin access for your account.
           </p>
         </div>
         <Button
-          className="rounded-xl px-8 h-11 text-xs font-semibold text-white transition-all"
-          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+          className="rounded-xl px-8 h-11 text-xs font-semibold shadow-sm transition-all"
           onClick={() => claimSuperAdmin()}
         >
-          <ShieldCheck className="w-4 h-4 mr-2 text-emerald-400" /> Claim Admin Role
+          Claim Admin Access
         </Button>
       </div>
     );
   }
 
-  // Queries
+  // Load App Settings
+  useEffect(() => {
+    async function loadSettings() {
+      const { data, error } = await (supabase as any).from("app_settings").select("*");
+      if (data && !error) {
+        data.forEach((item: any) => {
+          if (item.key === "service_interval_months" && item.value) setServiceInterval(item.value);
+          if (item.key === "service_interval_days" && item.value) setServiceIntervalDays(item.value);
+          if (item.key === "role_labels" && item.value) {
+            try {
+              setCustomRoleLabels(JSON.parse(item.value));
+            } catch (e) {}
+          }
+        });
+      }
+    }
+    loadSettings();
+  }, []);
+
+  // Fetch Users & Roles
   const { data: usersData = [], isLoading } = useQuery({
     queryKey: ["users-roles"],
     queryFn: async () => {
-      const { data: profiles, error: profilesError } = await (supabase as any)
-        .from("profiles")
-        .select("id, user_id, display_name, phone, avatar_url");
-
-      if (profilesError) throw profilesError;
-      if (!profiles || profiles.length === 0) return [];
-
-      const { data: roles } = await (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("user_roles")
-        .select("*");
-
-      const safeRoles = roles || [];
-
-      return profiles.map((p: any) => {
-        const pid = p.user_id || p.id;
-        const roleEntry = safeRoles.find((r: any) => r.user_id === pid);
-        return {
-          id: roleEntry?.id || null,
-          user_id: pid,
-          role: roleEntry?.role || "pending",
-          profile: p,
-        };
-      });
-    },
-  });
-
-  const { data: appSettings } = useQuery({
-    queryKey: ["app_settings"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any).from("app_settings").select("*");
+        .select(`
+          id,
+          user_id,
+          role,
+          profile:profiles (
+            display_name,
+            phone,
+            avatar_url
+          )
+        `);
       if (error) throw error;
-      return data as any[];
+      return data || [];
     },
   });
-
-  useEffect(() => {
-    if (appSettings) {
-      const intervalRow = appSettings.find((r: any) => r.key === "service_interval_months");
-      const daysRow = appSettings.find((r: any) => r.key === "service_interval_days");
-      const labelsRow = appSettings.find((r: any) => r.key === "role_labels");
-      if (intervalRow) setServiceInterval(intervalRow.value);
-      if (daysRow) setServiceIntervalDays(daysRow.value);
-      if (labelsRow) {
-        try {
-          const parsed = typeof labelsRow.value === "string" ? JSON.parse(labelsRow.value) : labelsRow.value;
-          if (parsed && typeof parsed === "object") setCustomRoleLabels(parsed);
-        } catch (e) {}
-      }
-    }
-  }, [appSettings]);
 
   const { data: repairs = [] } = useQuery({
-    queryKey: ["repairs-preview"],
+    queryKey: ["repairs"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("repairs")
-        .select("*, vehicles(make, model, year)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      const { data } = await (supabase as any).from("repairs").select("id, vehicle_id, customer_id, repair_date, vehicle_make, vehicle_year_model");
+      return data || [];
     },
-    enabled: tab === "system",
   });
 
   const { data: customers = [] } = useQuery({
-    queryKey: ["customers-preview"],
+    queryKey: ["customers"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("customers").select("id, name");
-      if (error) throw error;
-      return data;
+      const { data } = await (supabase as any).from("customers").select("id, name, phone");
+      return data || [];
     },
-    enabled: tab === "system",
   });
-
-  const previewReminders = useMemo(() => {
-    if (!repairs.length) return [];
-    const now = new Date();
-    const months = parseInt(serviceInterval) || 0;
-    const days = parseInt(serviceIntervalDays) || 0;
-
-    const latestByVehicle = new Map<string, { label: string; customer: string; lastDate: Date }>();
-    for (const r of repairs) {
-      const key = r.vehicle_id || `manual:${r.manual_make}:${r.manual_model}:${r.manual_year}`;
-      const label = r.vehicles
-        ? `${r.vehicles.year} ${r.vehicles.make} ${r.vehicles.model}`
-        : `${r.manual_year || ""} ${r.manual_make || ""} ${r.manual_model || ""}`.trim() || "Unknown Vehicle";
-      const cust = (customers as any[]).find((c: any) => c.id === r.customer_id);
-      const custName = cust ? cust.name : (r.brought_in_by || "Unknown Customer");
-      const repairDate = new Date(r.created_at);
-      const existing = latestByVehicle.get(key);
-      if (!existing || repairDate > existing.lastDate) {
-        latestByVehicle.set(key, { label, customer: custName, lastDate: repairDate });
-      }
-    }
-
-    const result: any[] = [];
-    for (const [key, entry] of latestByVehicle.entries()) {
-      const dueDate = new Date(entry.lastDate);
-      dueDate.setMonth(dueDate.getMonth() + months);
-      dueDate.setDate(dueDate.getDate() + days);
-
-      const soonThreshold = new Date(now);
-      soonThreshold.setDate(soonThreshold.getDate() + 14);
-
-      if (dueDate <= soonThreshold) {
-        result.push({ ...entry, dueDate, status: dueDate < now ? "overdue" : "soon" });
-      }
-    }
-    return result.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
-  }, [repairs, customers, serviceInterval, serviceIntervalDays]);
 
   const { data: logs = [], isLoading: isLoadingLogs } = useQuery({
     queryKey: ["audit_logs"],
@@ -320,19 +273,6 @@ export default function Settings() {
     onError: (e: any) => toast.error("Failed: " + e.message),
     onSettled: () => setDeleting(false),
   });
-
-  const claimSuperAdmin = async () => {
-    if (!user) return toast.error("Not logged in");
-    const { error } = await (supabase as any)
-      .from("user_roles")
-      .upsert({ user_id: user.id, role: "admin" }, { onConflict: "user_id" });
-    if (error) {
-      toast.error("Failed: " + error.message);
-    } else {
-      toast.success("Admin role granted! Reloading...");
-      setTimeout(() => window.location.reload(), 900);
-    }
-  };
 
   const handleInvite = async () => {
     if (!inviteForm.email || !inviteForm.password || !inviteForm.displayName) {
@@ -592,26 +532,26 @@ export default function Settings() {
   return (
     <div className="space-y-6 animate-fade-up max-w-6xl mx-auto pb-16">
       {/* ── Page Header ────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border/80">
         <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="sm:hidden h-8 w-8 rounded-xl shrink-0 bg-white/5 hover:bg-white/10 text-white/70"
+            className="sm:hidden h-8 w-8 rounded-xl shrink-0 bg-muted hover:bg-muted/80 text-foreground"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Shield className="w-3.5 h-3.5 text-white/40" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-white/40">System Control</span>
+              <Shield className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">System Control</span>
             </div>
-            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
               Settings & Administration
             </h1>
-            <p className="text-xs text-white/40 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Configure user roles, access permissions, system intervals, and security logs.
             </p>
           </div>
@@ -621,17 +561,16 @@ export default function Settings() {
           <Button
             variant="outline"
             size="sm"
-            className="rounded-xl transition-all font-semibold text-xs h-10 px-4 text-white"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)" }}
+            className="rounded-xl transition-all font-semibold text-xs h-10 px-4 border-border text-foreground hover:bg-muted"
             onClick={() => { setTransferTarget(""); setTransferOpen(true); }}
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 mr-2 text-white/60" /> Transfer Admin Role
+            <ArrowRightLeft className="w-3.5 h-3.5 mr-2 text-muted-foreground" /> Transfer Admin Role
           </Button>
         </div>
       </div>
 
       {/* ── Navigation Tabs ───────────────────────────────────── */}
-      <div className="flex p-1 bg-white/4 border border-white/8 rounded-2xl gap-1 w-full max-w-xl">
+      <div className="flex p-1 bg-muted/60 border border-border/80 rounded-2xl gap-1 w-full max-w-xl">
         {[
           ["team", "Team Accounts", <Users className="w-4 h-4 shrink-0" />],
           ["permissions", "Access Matrix", <Shield className="w-4 h-4 shrink-0" />],
@@ -645,8 +584,8 @@ export default function Settings() {
               onClick={() => setTab(key as Tab)}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-200 ${
                 isActive
-                  ? "text-white bg-white/12 border border-white/15 shadow-sm"
-                  : "text-white/40 hover:text-white/80 hover:bg-white/5"
+                  ? "text-foreground bg-background border border-border shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
             >
               {icon}
@@ -658,36 +597,35 @@ export default function Settings() {
 
       {/* ── TEAM ACCOUNTS TAB ── */}
       {tab === "team" && (
-        <div className="rounded-3xl p-6 sm:p-8 space-y-6" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="bento-card p-6 sm:p-8 space-y-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-base font-semibold text-white/90 flex items-center gap-2">
-                <Users className="h-4 w-4 text-white/60" /> Staff & User Directory
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" /> Staff & User Directory
               </h2>
-              <p className="text-xs text-white/40 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Manage registered dealership members and assign their authorization roles.
               </p>
             </div>
 
             <Button
               size="sm"
-              className="rounded-xl transition-all font-semibold text-xs h-10 px-5 text-white"
-              style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+              className="rounded-xl transition-all font-semibold text-xs h-10 px-5 shadow-sm"
               onClick={() => setInviteOpen(true)}
             >
-              <UserPlus className="mr-2 h-4 w-4 text-white/70" /> Invite New User
+              <UserPlus className="mr-2 h-4 w-4" /> Invite New User
             </Button>
           </div>
 
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-white/5 rounded-2xl animate-pulse" />
+                <div key={i} className="h-16 bg-muted/40 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : usersData.length === 0 ? (
-            <div className="text-center p-8 border border-white/8 bg-white/3 rounded-2xl">
-              <p className="text-xs text-white/40">No team members registered yet.</p>
+            <div className="text-center p-8 border border-border bg-muted/20 rounded-2xl">
+              <p className="text-xs text-muted-foreground">No team members registered yet.</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -695,35 +633,33 @@ export default function Settings() {
                 const profile = u.profile;
                 const isSelf = u.user_id === user?.id;
                 const roleLabel = getRoleDisplayLabel(u.role, customRoleLabels);
-                const rc = ROLE_CONFIG[u.role] ?? { label: roleLabel, color: "text-white/80 font-medium", icon: <User className="w-3.5 h-3.5 text-white/60" /> };
+                const rc = ROLE_CONFIG[u.role] ?? { label: roleLabel, color: "text-foreground font-medium", icon: <User className="w-3.5 h-3.5 text-muted-foreground" /> };
                 return (
                   <div
                     key={u.user_id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl transition-all"
-                    style={{
-                      background: isSelf ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
-                      border: "1px solid rgba(255,255,255,0.07)",
-                    }}
+                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl transition-all border border-border/80 ${
+                      isSelf ? "bg-muted/50 shadow-sm" : "bg-card hover:bg-muted/30"
+                    }`}
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-white/10 text-white/90 border border-white/15">
+                      <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 bg-primary/10 text-primary border border-primary/20">
                         {profile?.display_name?.charAt(0)?.toUpperCase() || "?"}
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm text-white/90">
+                          <span className="font-semibold text-sm text-foreground">
                             {profile?.display_name || "Unknown User"}
                           </span>
                           {isSelf && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/15 font-semibold">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20 font-semibold">
                               You
                             </span>
                           )}
-                          <span className={`text-[10px] px-2.5 py-0.5 rounded-full bg-white/5 flex items-center gap-1 border border-white/10 ${rc.color}`}>
+                          <span className={`text-[10px] px-2.5 py-0.5 rounded-full bg-muted flex items-center gap-1 border border-border ${rc.color}`}>
                             {rc.icon} {roleLabel}
                           </span>
                         </div>
-                        <p className="text-xs text-white/40 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {profile?.phone || "No phone recorded"}
                         </p>
                       </div>
@@ -740,13 +676,13 @@ export default function Settings() {
                         }}
                         disabled={updateRole.isPending}
                       >
-                        <SelectTrigger className="w-[160px] rounded-xl bg-white/5 border-white/10 h-9 text-xs font-semibold">
+                        <SelectTrigger className="w-[160px] rounded-xl bg-background border-border h-9 text-xs font-semibold">
                           <SelectValue placeholder="Assign Role" />
                         </SelectTrigger>
-                        <SelectContent className="glass-panel font-medium rounded-xl">
-                          <SelectItem value="pending" className="rounded-lg text-rose-400 text-xs">Pending Approval</SelectItem>
+                        <SelectContent className="font-medium rounded-xl">
+                          <SelectItem value="pending" className="rounded-lg text-rose-500 text-xs">Pending Approval</SelectItem>
                           {configurableRoles.map((rKey) => (
-                            <SelectItem key={rKey} value={rKey} className="rounded-lg text-white/90 text-xs">
+                            <SelectItem key={rKey} value={rKey} className="rounded-lg text-foreground text-xs">
                               {getRoleDisplayLabel(rKey, customRoleLabels)}
                             </SelectItem>
                           ))}
@@ -757,7 +693,7 @@ export default function Settings() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9 text-white/30 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl"
+                          className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
                           onClick={() => setDeleteId(u.user_id)}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -774,13 +710,13 @@ export default function Settings() {
 
       {/* ── ACCESS PERMISSIONS MATRIX TAB ── */}
       {tab === "permissions" && (
-        <div className="rounded-3xl p-6 sm:p-8 space-y-6" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="bento-card p-6 sm:p-8 space-y-6">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="text-base font-semibold text-white/90 flex items-center gap-2">
-                <Shield className="h-4 w-4 text-white/60" /> Role Access Control Matrix
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <Shield className="h-4 w-4 text-muted-foreground" /> Role Access Control Matrix
               </h2>
-              <p className="text-xs text-white/40 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Configure module-level permissions for each role. Admin role always maintains full system access.
               </p>
             </div>
@@ -789,15 +725,15 @@ export default function Settings() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-xl border-white/10 text-white/80 hover:bg-white/10 text-xs h-9 px-3"
+                className="rounded-xl border-border text-foreground hover:bg-muted text-xs h-9 px-3"
                 onClick={() => setCreateRoleOpen(true)}
               >
-                <Plus className="w-3.5 h-3.5 mr-1.5 text-emerald-400" /> Add New Role
+                <Plus className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> Add New Role
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="rounded-xl text-xs text-white/50 hover:text-white hover:bg-white/5 h-9"
+                className="rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted h-9"
                 onClick={resetPerms}
                 disabled={isSaving}
               >
@@ -806,8 +742,7 @@ export default function Settings() {
               <Button
                 size="sm"
                 disabled={!permDirty || isSaving}
-                className="rounded-xl transition-all font-semibold text-xs h-9 px-5 text-white disabled:opacity-40"
-                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+                className="rounded-xl transition-all font-semibold text-xs h-9 px-5 shadow-sm disabled:opacity-40"
                 onClick={savePerms}
               >
                 {isSaving ? "Saving..." : permDirty ? "Save Changes *" : "Save Changes"}
@@ -815,25 +750,25 @@ export default function Settings() {
             </div>
           </div>
 
-          <div className="text-xs text-white/40 bg-white/3 p-3 rounded-xl border border-white/6">
+          <div className="text-xs text-muted-foreground bg-muted/40 p-3.5 rounded-xl border border-border/80">
             Click any cell to cycle access:{" "}
-            <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/30">None</span> →{" "}
-            <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 font-semibold">View Only</span> →{" "}
-            <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-semibold">View & Add</span> →{" "}
-            <span className="px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-400 font-semibold">Full Access</span>
+            <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">None</span> →{" "}
+            <span className="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-600 dark:text-sky-400 font-semibold">View Only</span> →{" "}
+            <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold">View & Add</span> →{" "}
+            <span className="px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-semibold">Full Access</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[500px]">
               <thead>
-                <tr className="border-b border-white/8 text-left">
-                  <th className="pb-3 text-xs font-semibold text-white/40 uppercase tracking-wider pr-6">Module / Page</th>
+                <tr className="border-b border-border text-left">
+                  <th className="pb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider pr-6">Module / Page</th>
                   {configurableRoles.map((r) => {
                     const displayLabel = getRoleDisplayLabel(r, customRoleLabels);
-                    const rc = ROLE_CONFIG[r] ?? { label: displayLabel, color: "text-white/90 font-semibold", icon: <User className="w-3.5 h-3.5 text-white/70" /> };
+                    const rc = ROLE_CONFIG[r] ?? { label: displayLabel, color: "text-foreground font-semibold", icon: <User className="w-3.5 h-3.5 text-muted-foreground" /> };
                     return (
                       <th key={r} className="pb-3 text-center px-2">
-                        <div className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                        <div className="inline-flex items-center gap-1.5 bg-muted/60 border border-border px-3 py-1.5 rounded-xl">
                           <span className={`inline-flex items-center gap-1 text-xs font-bold ${rc.color}`}>
                             {rc.icon} {displayLabel}
                           </span>
@@ -843,7 +778,7 @@ export default function Settings() {
                               setRenameRoleName(displayLabel);
                               setRenameRoleOpen(true);
                             }}
-                            className="p-1 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-1 text-muted-foreground hover:text-foreground hover:bg-background rounded-lg transition-colors"
                             title={`Rename ${displayLabel}`}
                           >
                             <Pencil className="w-3 h-3" />
@@ -856,27 +791,27 @@ export default function Settings() {
               </thead>
               <tbody>
                 {ALL_PAGES.map((page) => (
-                  <tr key={page.key} className="border-t border-white/5 hover:bg-white/[0.02]">
-                    <td className="py-3 pr-6 text-xs font-medium text-white/80">{page.label}</td>
+                  <tr key={page.key} className="border-t border-border/50 hover:bg-muted/30">
+                    <td className="py-3 pr-6 text-xs font-medium text-foreground">{page.label}</td>
                     {configurableRoles.map((r) => {
                       const hasView = (permissions[r]?.view ?? []).includes(page.key);
                       const hasCreate = ((permissions[r] as any)?.create ?? []).includes(page.key);
                       const hasEdit = (permissions[r]?.edit ?? []).includes(page.key);
 
-                      let btnClass = "bg-white/5 text-white/20 hover:bg-white/10";
+                      let btnClass = "bg-muted text-muted-foreground/60 hover:bg-muted/80 hover:text-foreground";
                       let title = "Grant View access";
                       let icon = <ToggleLeft className="w-4 h-4" />;
 
                       if (hasView && !hasCreate && !hasEdit) {
-                        btnClass = "bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 border border-sky-500/30";
+                        btnClass = "bg-sky-500/15 text-sky-600 dark:text-sky-400 hover:bg-sky-500/25 border border-sky-500/30";
                         title = "Grant Add access";
                         icon = <Eye className="w-4 h-4" />;
                       } else if (hasView && hasCreate && !hasEdit) {
-                        btnClass = "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30";
+                        btnClass = "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30";
                         title = "Grant Edit access";
                         icon = <Plus className="w-4 h-4" />;
                       } else if (hasView && hasCreate && hasEdit) {
-                        btnClass = "bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/30";
+                        btnClass = "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/25 border border-indigo-500/30";
                         title = "Revoke all access";
                         icon = <Pencil className="w-3.5 h-3.5" />;
                       }
@@ -903,68 +838,67 @@ export default function Settings() {
 
       {/* ── SYSTEM CONFIGURATION TAB ── */}
       {tab === "system" && (
-        <div className="rounded-3xl p-6 sm:p-8 space-y-6" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="bento-card p-6 sm:p-8 space-y-6">
           <div className="flex items-center gap-3">
-            <Bell className="h-5 w-5 text-white/70" />
+            <Bell className="h-5 w-5 text-muted-foreground" />
             <div>
-              <h2 className="text-base font-semibold text-white/90">Automated Inspection Reminders</h2>
-              <p className="text-xs text-white/40 mt-0.5">
+              <h2 className="text-base font-semibold text-foreground">Automated Inspection Reminders</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Configure default routine inspection and maintenance schedules across the fleet.
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-5 rounded-2xl bg-white/3 border border-white/7 space-y-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-white/50">Interval Settings</span>
+            <div className="p-5 rounded-2xl bg-muted/40 border border-border/80 space-y-4">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Interval Settings</span>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-white/60">Months</Label>
+                  <Label className="text-xs text-muted-foreground">Months</Label>
                   <Input
                     type="number"
                     min="0"
                     max="24"
                     value={serviceInterval}
                     onChange={(e) => setServiceInterval(e.target.value)}
-                    className="rounded-xl h-10 bg-white/5 border-white/10 text-center font-bold text-sm focus-visible:ring-white/20"
+                    className="rounded-xl h-10 bg-background border-border text-center font-bold text-sm"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-white/60">Days</Label>
+                  <Label className="text-xs text-muted-foreground">Days</Label>
                   <Input
                     type="number"
                     min="0"
                     max="31"
                     value={serviceIntervalDays}
                     onChange={(e) => setServiceIntervalDays(e.target.value)}
-                    className="rounded-xl h-10 bg-white/5 border-white/10 text-center font-bold text-sm focus-visible:ring-white/20"
+                    className="rounded-xl h-10 bg-background border-border text-center font-bold text-sm"
                   />
                 </div>
               </div>
               <Button
                 onClick={saveServiceInterval}
                 disabled={intervalSaving}
-                className="w-full rounded-xl transition-all font-semibold text-xs h-10 text-white"
-                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+                className="w-full rounded-xl transition-all font-semibold text-xs h-10 shadow-sm"
               >
-                <Save className="w-4 h-4 mr-2 text-white/70" />
+                <Save className="w-4 h-4 mr-2" />
                 {intervalSaving ? "Saving..." : "Save Interval"}
               </Button>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white/3 border border-white/7 space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-white/50">Rules & Logic</span>
-              <ul className="space-y-2 text-xs text-white/50">
+            <div className="p-5 rounded-2xl bg-muted/40 border border-border/80 space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Rules & Logic</span>
+              <ul className="space-y-2 text-xs text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <span className="text-white/80 mt-0.5">•</span>
+                  <span className="text-foreground mt-0.5">•</span>
                   Reminders generate automatically based on vehicle intake date and inspection cycles.
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-white/80 mt-0.5">•</span>
+                  <span className="text-foreground mt-0.5">•</span>
                   Vehicles due within 14 days display status alerts on the Vehicles inventory list.
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-white/80 mt-0.5">•</span>
+                  <span className="text-foreground mt-0.5">•</span>
                   Completing an inspection resets the countdown timer for that vehicle.
                 </li>
               </ul>
@@ -975,12 +909,12 @@ export default function Settings() {
 
       {/* ── SYSTEM AUDIT LOGS TAB ── */}
       {tab === "audit" && (
-        <div className="rounded-3xl p-6 sm:p-8 space-y-6" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="bento-card p-6 sm:p-8 space-y-6">
           <div>
-            <h2 className="text-base font-semibold text-white/90 flex items-center gap-2">
-              <Activity className="h-4 w-4 text-white/60" /> Security Audit Log
+            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+              <Activity className="h-4 w-4 text-muted-foreground" /> Security Audit Log
             </h2>
-            <p className="text-xs text-white/40 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Live audit trail recording system actions, user logins, data changes, and security events.
             </p>
           </div>
@@ -988,43 +922,42 @@ export default function Settings() {
           {isLoadingLogs ? (
             <div className="space-y-2.5">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-14 bg-white/5 rounded-2xl animate-pulse" />
+                <div key={i} className="h-14 bg-muted/40 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : logs.length === 0 ? (
-            <div className="p-8 text-center border border-white/8 bg-white/3 rounded-2xl">
-              <p className="text-xs text-white/40">No activity logged yet.</p>
+            <div className="p-8 text-center border border-border bg-muted/20 rounded-2xl">
+              <p className="text-xs text-muted-foreground">No activity logged yet.</p>
             </div>
           ) : (
             <div className="space-y-2">
               {logs.map((log: any) => {
                 const userName = log.profiles?.display_name || log.details?._user_name || null;
-                const actionColor = ACTION_COLORS[log.action] || "bg-white/10 text-white/80";
+                const actionColor = ACTION_COLORS[log.action] || "bg-muted text-foreground border border-border";
                 const description = describeLog(log);
                 return (
                   <div
                     key={log.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-2xl border transition-all"
-                    style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-2xl border border-border/70 bg-card hover:bg-muted/30 transition-all"
                   >
-                    <div className="shrink-0 h-8 w-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center font-bold text-xs text-white/80">
+                    <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary">
                       {userName ? userName.charAt(0).toUpperCase() : "?"}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                        <span className="font-semibold text-xs text-white/90">
-                          {userName || <span className="italic text-white/40">System</span>}
+                        <span className="font-semibold text-xs text-foreground">
+                          {userName || <span className="italic text-muted-foreground">System</span>}
                         </span>
                         <span className={`inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${actionColor}`}>
                           {log.action}
                         </span>
                       </div>
-                      <p className="text-xs text-white/50 truncate">{description}</p>
+                      <p className="text-xs text-muted-foreground truncate">{description}</p>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <p className="text-[10px] font-mono text-white/40">
+                      <p className="text-[10px] font-mono text-muted-foreground">
                         {new Date(log.created_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}
                       </p>
                     </div>
@@ -1038,197 +971,54 @@ export default function Settings() {
 
       {/* ── INVITE USER DIALOG ── */}
       <Dialog open={inviteOpen} onOpenChange={(v) => !inviting && setInviteOpen(v)}>
-        <DialogContent className="max-w-md rounded-3xl glass-panel shadow-2xl border-white/10 p-0 bg-zinc-950 backdrop-blur-3xl">
-          <div className="p-6 border-b border-white/8">
+        <DialogContent className="max-w-md rounded-3xl bg-background border border-border shadow-2xl p-0">
+          <div className="p-6 border-b border-border">
             <DialogHeader>
-              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-white">
-                <UserPlus className="h-4 w-4 text-white/70" /> Invite New Team Member
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+                <UserPlus className="h-4 w-4 text-primary" /> Invite New Team Member
               </DialogTitle>
-              <p className="text-xs text-white/40 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Create user account and initial password. Share credentials with the team member.
               </p>
             </DialogHeader>
           </div>
           <div className="p-6 space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Full Name</Label>
+              <Label className="text-xs font-semibold text-foreground/80">Full Name</Label>
               <Input
                 placeholder="e.g. John Doe"
-                className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white focus-visible:ring-white/20"
+                className="rounded-xl h-10 text-xs"
                 value={inviteForm.displayName}
                 onChange={(e) => setInviteForm({ ...inviteForm, displayName: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Email Address</Label>
+              <Label className="text-xs font-semibold text-foreground/80">Email Address</Label>
               <Input
                 type="email"
                 placeholder="user@example.com"
-                className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white focus-visible:ring-white/20"
+                className="rounded-xl h-10 text-xs"
                 value={inviteForm.email}
                 onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Set Password</Label>
+              <Label className="text-xs font-semibold text-foreground/80">Set Password</Label>
               <Input
                 type="password"
                 placeholder="Min. 6 characters"
-                className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white focus-visible:ring-white/20"
+                className="rounded-xl h-10 text-xs"
                 value={inviteForm.password}
                 onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Assign Role</Label>
+              <Label className="text-xs font-semibold text-foreground/80">Assign Role</Label>
               <Select value={inviteForm.role} onValueChange={(v) => setInviteForm({ ...inviteForm, role: v })}>
-                <SelectTrigger className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white">
+                <SelectTrigger className="rounded-xl h-10 text-xs">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="glass-panel rounded-xl">
-                  {configurableRoles.map((rKey) => (
-                    <SelectItem key={rKey} value={rKey} className="rounded-lg text-white/90 text-xs">
-                      {getRoleDisplayLabel(rKey, customRoleLabels)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter className="p-6 pt-0 gap-2">
-            <Button variant="outline" onClick={() => setInviteOpen(false)} disabled={inviting} className="rounded-xl border-white/10 text-xs h-10">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleInvite}
-              disabled={inviting}
-              className="rounded-xl text-xs font-semibold h-10 text-black bg-white hover:bg-white/90"
-            >
-              {inviting ? "Creating Account..." : "Create Account"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── CREATE ROLE DIALOG ── */}
-      <Dialog open={createRoleOpen} onOpenChange={(v) => !creatingRole && setCreateRoleOpen(v)}>
-        <DialogContent className="max-w-md rounded-3xl glass-panel shadow-2xl border-white/10 p-0 bg-zinc-950 backdrop-blur-3xl">
-          <div className="p-6 border-b border-white/8">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-white">
-                <Plus className="h-4 w-4 text-emerald-400" /> Create Custom Role
-              </DialogTitle>
-              <p className="text-xs text-white/40 mt-1">
-                Add a new staff or management authorization role to the system.
-              </p>
-            </DialogHeader>
-          </div>
-          <div className="p-6 space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Role Name</Label>
-              <Input
-                placeholder="e.g. Inventory Manager, Auditor, Supervisor"
-                className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white focus-visible:ring-white/20"
-                value={newRoleName}
-                onChange={(e) => setNewRoleName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleCreateRole(); }}
-              />
-              <p className="text-[11px] text-white/30">
-                Key preview: {newRoleName ? newRoleName.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") : "role_key"}
-              </p>
-            </div>
-          </div>
-          <DialogFooter className="p-6 pt-0 gap-2">
-            <Button variant="outline" onClick={() => setCreateRoleOpen(false)} disabled={creatingRole} className="rounded-xl border-white/10 text-xs h-10">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateRole}
-              disabled={creatingRole || !newRoleName.trim()}
-              className="rounded-xl text-xs font-semibold h-10 text-black bg-white hover:bg-white/90"
-            >
-              {creatingRole ? "Creating Role..." : "Create Role"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── RENAME ROLE DIALOG ── */}
-      <Dialog open={renameRoleOpen} onOpenChange={(v) => !renamingRole && setRenameRoleOpen(v)}>
-        <DialogContent className="max-w-md rounded-3xl glass-panel shadow-2xl border-white/10 p-0 bg-zinc-950 backdrop-blur-3xl">
-          <div className="p-6 border-b border-white/8">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-white">
-                <Pencil className="h-4 w-4 text-sky-400" /> Rename Role Title
-              </DialogTitle>
-              <p className="text-xs text-white/40 mt-1">
-                Change the public display title of this role.
-              </p>
-            </DialogHeader>
-          </div>
-          <div className="p-6 space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Display Title</Label>
-              <Input
-                placeholder="e.g. Service Tech, Senior Advisor"
-                className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white focus-visible:ring-white/20"
-                value={renameRoleName}
-                onChange={(e) => setRenameRoleName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") handleRenameRole(); }}
-              />
-            </div>
-          </div>
-          <DialogFooter className="p-6 pt-0 gap-2">
-            <Button variant="outline" onClick={() => setRenameRoleOpen(false)} disabled={renamingRole} className="rounded-xl border-white/10 text-xs h-10">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRenameRole}
-              disabled={renamingRole || !renameRoleName.trim()}
-              className="rounded-xl text-xs font-semibold h-10 text-black bg-white hover:bg-white/90"
-            >
-              {renamingRole ? "Saving..." : "Save Role Title"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── TRANSFER ADMIN DIALOG ── */}
-      <Dialog open={transferOpen} onOpenChange={(v) => !transferring && setTransferOpen(v)}>
-        <DialogContent className="max-w-md rounded-3xl glass-panel shadow-2xl border-white/10 p-0 bg-zinc-950 backdrop-blur-3xl">
-          <div className="p-6 border-b border-white/8">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-white">
-                <ArrowRightLeft className="h-4 w-4 text-white/70" /> Transfer Admin Role
-              </DialogTitle>
-              <p className="text-xs text-white/40 mt-1">
-                Promote selected user to Admin role and set your updated role.
-              </p>
-            </DialogHeader>
-          </div>
-          <div className="p-6 space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Transfer Admin Role To</Label>
-              <Select value={transferTarget} onValueChange={setTransferTarget}>
-                <SelectTrigger className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white">
-                  <SelectValue placeholder="Select team member..." />
-                </SelectTrigger>
-                <SelectContent className="glass-panel rounded-xl">
-                  {otherUsers.map((u: any) => (
-                    <SelectItem key={u.user_id} value={u.user_id} className="rounded-lg text-xs">
-                      {u.profile?.display_name || "Unknown User"} — <span className="opacity-60">{getRoleDisplayLabel(u.role, customRoleLabels)}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-white/60">Set My Role To</Label>
-              <Select value={transferDowngradeTo} onValueChange={setTransferDowngradeTo}>
-                <SelectTrigger className="rounded-xl h-10 bg-white/5 border-white/10 text-xs text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="glass-panel rounded-xl">
+                <SelectContent className="rounded-xl">
                   {configurableRoles.map((rKey) => (
                     <SelectItem key={rKey} value={rKey} className="rounded-lg text-xs">
                       {getRoleDisplayLabel(rKey, customRoleLabels)}
@@ -1239,13 +1029,156 @@ export default function Settings() {
             </div>
           </div>
           <DialogFooter className="p-6 pt-0 gap-2">
-            <Button variant="outline" onClick={() => setTransferOpen(false)} disabled={transferring} className="rounded-xl border-white/10 text-xs h-10">
+            <Button variant="outline" onClick={() => setInviteOpen(false)} disabled={inviting} className="rounded-xl text-xs h-10">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleInvite}
+              disabled={inviting}
+              className="rounded-xl text-xs font-semibold h-10"
+            >
+              {inviting ? "Creating Account..." : "Create Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── CREATE ROLE DIALOG ── */}
+      <Dialog open={createRoleOpen} onOpenChange={(v) => !creatingRole && setCreateRoleOpen(v)}>
+        <DialogContent className="max-w-md rounded-3xl bg-background border border-border shadow-2xl p-0">
+          <div className="p-6 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+                <Plus className="h-4 w-4 text-emerald-500" /> Create Custom Role
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Add a new staff or management authorization role to the system.
+              </p>
+            </DialogHeader>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground/80">Role Name</Label>
+              <Input
+                placeholder="e.g. Inventory Manager, Auditor, Supervisor"
+                className="rounded-xl h-10 text-xs"
+                value={newRoleName}
+                onChange={(e) => setNewRoleName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleCreateRole(); }}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Key preview: {newRoleName ? newRoleName.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") : "role_key"}
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="p-6 pt-0 gap-2">
+            <Button variant="outline" onClick={() => setCreateRoleOpen(false)} disabled={creatingRole} className="rounded-xl text-xs h-10">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateRole}
+              disabled={creatingRole || !newRoleName.trim()}
+              className="rounded-xl text-xs font-semibold h-10"
+            >
+              {creatingRole ? "Creating Role..." : "Create Role"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── RENAME ROLE DIALOG ── */}
+      <Dialog open={renameRoleOpen} onOpenChange={(v) => !renamingRole && setRenameRoleOpen(v)}>
+        <DialogContent className="max-w-md rounded-3xl bg-background border border-border shadow-2xl p-0">
+          <div className="p-6 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+                <Pencil className="h-4 w-4 text-sky-500" /> Rename Role Title
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Change the public display title of this role.
+              </p>
+            </DialogHeader>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground/80">Display Title</Label>
+              <Input
+                placeholder="e.g. Service Tech, Senior Advisor"
+                className="rounded-xl h-10 text-xs"
+                value={renameRoleName}
+                onChange={(e) => setRenameRoleName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleRenameRole(); }}
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-6 pt-0 gap-2">
+            <Button variant="outline" onClick={() => setRenameRoleOpen(false)} disabled={renamingRole} className="rounded-xl text-xs h-10">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRenameRole}
+              disabled={renamingRole || !renameRoleName.trim()}
+              className="rounded-xl text-xs font-semibold h-10"
+            >
+              {renamingRole ? "Saving..." : "Save Role Title"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── TRANSFER ADMIN DIALOG ── */}
+      <Dialog open={transferOpen} onOpenChange={(v) => !transferring && setTransferOpen(v)}>
+        <DialogContent className="max-w-md rounded-3xl bg-background border border-border shadow-2xl p-0">
+          <div className="p-6 border-b border-border">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+                <ArrowRightLeft className="h-4 w-4 text-primary" /> Transfer Admin Role
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Promote selected user to Admin role and set your updated role.
+              </p>
+            </DialogHeader>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground/80">Transfer Admin Role To</Label>
+              <Select value={transferTarget} onValueChange={setTransferTarget}>
+                <SelectTrigger className="rounded-xl h-10 text-xs">
+                  <SelectValue placeholder="Select team member..." />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {otherUsers.map((u: any) => (
+                    <SelectItem key={u.user_id} value={u.user_id} className="rounded-lg text-xs">
+                      {u.profile?.display_name || "Unknown User"} — <span className="opacity-60">{getRoleDisplayLabel(u.role, customRoleLabels)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground/80">Set My Role To</Label>
+              <Select value={transferDowngradeTo} onValueChange={setTransferDowngradeTo}>
+                <SelectTrigger className="rounded-xl h-10 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {configurableRoles.map((rKey) => (
+                    <SelectItem key={rKey} value={rKey} className="rounded-lg text-xs">
+                      {getRoleDisplayLabel(rKey, customRoleLabels)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="p-6 pt-0 gap-2">
+            <Button variant="outline" onClick={() => setTransferOpen(false)} disabled={transferring} className="rounded-xl text-xs h-10">
               Cancel
             </Button>
             <Button
               onClick={handleTransfer}
               disabled={transferring || !transferTarget}
-              className="rounded-xl text-xs font-semibold h-10 text-black bg-white hover:bg-white/90"
+              className="rounded-xl text-xs font-semibold h-10"
             >
               {transferring ? "Transferring..." : "Confirm Transfer"}
             </Button>
@@ -1255,20 +1188,20 @@ export default function Settings() {
 
       {/* ── DELETE USER CONFIRM DIALOG ── */}
       <AlertDialog open={!!deleteId} onOpenChange={() => !deleting && setDeleteId(null)}>
-        <AlertDialogContent className="rounded-3xl glass-panel border-white/10 p-6 shadow-2xl bg-zinc-950">
+        <AlertDialogContent className="rounded-3xl bg-background border border-border p-6 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-semibold flex items-center gap-2 text-white">
-              <AlertTriangle className="w-5 h-5 text-rose-400" /> Remove Team Member
+            <AlertDialogTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+              <AlertTriangle className="w-5 h-5 text-rose-500" /> Remove Team Member
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-white/50 pt-2">
-              Are you sure you want to remove <span className="font-semibold text-white">{usersData.find((u: any) => u.user_id === deleteId)?.profile?.display_name}</span> from the system?
+            <AlertDialogDescription className="text-xs text-muted-foreground pt-2">
+              Are you sure you want to remove <span className="font-semibold text-foreground">{usersData.find((u: any) => u.user_id === deleteId)?.profile?.display_name}</span> from the system?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 gap-2">
-            <AlertDialogCancel className="rounded-xl border-white/10 text-xs h-10" disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl text-xs h-10" disabled={deleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs h-10 font-semibold border-none"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl text-xs h-10 font-semibold border-none"
               disabled={deleting}
               onClick={() => deleteId && deleteUserMutation.mutate(deleteId)}
             >

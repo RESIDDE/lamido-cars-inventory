@@ -19,6 +19,7 @@ const poolers = [
 async function run() {
   const sql1 = fs.readFileSync(path.resolve('supabase/migrations/20260903000002_performance_quotes_save.sql'), 'utf8');
   const sql2 = fs.readFileSync(path.resolve('supabase/migrations/20260903000004_company_expenses.sql'), 'utf8');
+  const sql3 = fs.readFileSync(path.resolve('supabase/migrations/20260914000000_add_account_details_to_performance_quotes.sql'), 'utf8');
 
   for (const projectRef of projectRefs) {
     for (const pw of passwords) {
@@ -44,6 +45,10 @@ async function run() {
           console.log('Running Company Expenses SQL...');
           await client.query(sql2);
           console.log('✅ Company Expenses SQL applied successfully.');
+
+          console.log('Running Account Details SQL...');
+          await client.query(sql3);
+          console.log('✅ Account Details SQL applied successfully.');
 
           await client.end();
           console.log('🎉 ALL SQL MIGRATIONS COMPLETED SUCCESSFULLY!');

@@ -1880,12 +1880,6 @@ export default function RepairsMaintenance() {
                   <Button variant="ghost" size="sm" className="h-8 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground transition-all" onClick={() => openHistory(r, 'vehicle')}>
                     <HistoryIcon className="h-3.5 w-3.5 mr-1.5" /> Car History
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 rounded-lg hover:bg-sky-500/10 hover:text-sky-500 text-muted-foreground transition-all" title="Generate Invoice"
-                    onClick={() => {
-                      if (!r.customer_id) { toast.error("Assign a customer to this repair before invoicing"); return; }
-                      navigate(`/invoices?action=create&customer_id=${r.customer_id}&repair_id=${r.id}&type=repair`);
-                    }}
-                  ><FileOutput className="h-3.5 w-3.5 mr-1.5" /> Invoice</Button>
                   <Button 
                     variant="ghost" 
                     size="icon" 

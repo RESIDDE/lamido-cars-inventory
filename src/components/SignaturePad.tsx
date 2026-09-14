@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { XCircle } from "lucide-react";
+import { XCircle, PenLine } from "lucide-react";
+import { useTheme } from "next-themes";
 
 interface SignaturePadProps {
   value?: string;
@@ -11,24 +12,31 @@ export function SignaturePad({ value, onChange }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
+  const { resolvedTheme, theme } = useTheme();
 
+  const isDark = resolvedTheme === "dark" || theme === "dark";
+  const strokeColor = isDark ? "#ffffff" : "#0f172a";
+
+  // Initialize and size canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
+    // Set canvas size with device pixel ratio for sharp rendering
     const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    
     canvas.width = rect.width * window.devicePixelRatio;
     canvas.height = rect.height * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "hsl(var(--foreground))";
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = strokeColor;
 
-    // Load existing signature
+    // Load existing signature if provided
     if (value) {
       const img = new Image();
       img.onload = () => {
@@ -37,7 +45,7 @@ export function SignaturePad({ value, onChange }: SignaturePadProps) {
       };
       img.src = value;
     }
-  }, []);
+  }, [value, strokeColor]);
 
   const getPos = (e: React.TouchEvent | React.MouseEvent) => {
     const canvas = canvasRef.current!;
@@ -53,8 +61,16 @@ export function SignaturePad({ value, onChange }: SignaturePadProps) {
 
   const startDraw = (e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault();
-    const ctx = canvasRef.current?.getContext("2d");
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
     const pos = getPos(e);
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
@@ -64,8 +80,16 @@ export function SignaturePad({ value, onChange }: SignaturePadProps) {
   const draw = (e: React.TouchEvent | React.MouseEvent) => {
     if (!isDrawing) return;
     e.preventDefault();
-    const ctx = canvasRef.current?.getContext("2d");
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
     const pos = getPos(e);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
@@ -76,7 +100,7 @@ export function SignaturePad({ value, onChange }: SignaturePadProps) {
     if (!isDrawing) return;
     setIsDrawing(false);
     const canvas = canvasRef.current;
-    if (canvas && hasDrawn) {
+    if (canvas) {
       onChange(canvas.toDataURL("image/png"));
     }
   };
@@ -94,27 +118,39 @@ export function SignaturePad({ value, onChange }: SignaturePadProps) {
 
   return (
     <div className="space-y-2">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-40 border border-input rounded-md cursor-crosshair bg-background touch-none"
-        onMouseDown={startDraw}
-        onMouseMove={draw}
-        onMouseUp={endDraw}
-        onMouseLeave={endDraw}
-        onTouchStart={startDraw}
-        onTouchMove={draw}
-        onTouchEnd={endDraw}
-      />
-      <Button 
-        type="button" 
-        variant="ghost" 
-        size="sm" 
-        onClick={clear}
-        className="text-xs font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all gap-2"
-      >
-        <XCircle className="w-3.5 h-3.5" />
-        Clear Signature
-      </Button>
+      <div className="relative rounded-xl border border-border bg-zinc-100/90 dark:bg-zinc-950/80 shadow-inner overflow-hidden">
+        <canvas
+          ref={canvasRef}
+          className="w-full h-40 cursor-crosshair touch-none"
+          onMouseDown={startDraw}
+          onMouseMove={draw}
+          onMouseUp={endDraw}
+          onMouseLeave={endDraw}
+          onTouchStart={startDraw}
+          onTouchMove={draw}
+          onTouchEnd={endDraw}
+        />
+        {!hasDrawn && !value && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-muted-foreground/60 text-xs font-medium tracking-wider uppercase gap-1.5 select-none">
+            <PenLine className="w-4 h-4 opacity-50" />
+            <span>Sign here with mouse or touch</span>
+          </div>
+        )}
+        <div className="pointer-events-none absolute bottom-4 left-6 right-6 border-b border-dashed border-zinc-300 dark:border-zinc-700/50" />
+      </div>
+      <div className="flex items-center justify-between">
+        <Button 
+          type="button" 
+          variant="ghost" 
+          size="sm" 
+          onClick={clear}
+          className="text-xs font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all gap-1.5 h-8 px-2.5"
+        >
+          <XCircle className="w-3.5 h-3.5" />
+          Clear Signature
+        </Button>
+        <span className="text-[10px] text-muted-foreground/60">Digital Signature</span>
+      </div>
     </div>
   );
 }

@@ -28,7 +28,7 @@ import { canEdit, canCreate } from "@/lib/permissions";
 import { toast } from "sonner";
 import { 
   PlusCircle, Search, Printer, Trash2, FileText, FileSignature, Car, 
-  BarChart3, Package, Settings, ExternalLink, X
+  BarChart3, Package, Settings, ExternalLink, X, Building2
 } from "lucide-react";
 import { getPrintHeaderHTML, getPrintWatermarkHTML } from "@/components/PrintHeader";
 import { getPrintFooterHTML } from "@/components/PrintFooter";
@@ -68,6 +68,9 @@ export default function PerformanceQuotes() {
       isManual?: boolean;
       vehicleDescription?: string;
     }[],
+    bankName: "",
+    accountNumber: "",
+    accountName: "",
     notes: ""
   };
 
@@ -162,6 +165,9 @@ export default function PerformanceQuotes() {
         .insert({
           customer_id: finalCustomerId,
           total_amount: totalAmount,
+          bank_name: form.bankName.trim() || null,
+          account_number: form.accountNumber.trim() || null,
+          account_name: form.accountName.trim() || null,
           notes: form.notes.trim() || null,
         })
         .select()
@@ -373,6 +379,14 @@ export default function PerformanceQuotes() {
             <div style="font-weight: 900; font-size: 16px; text-align: right; white-space: nowrap;">₦${(Number(quote.total_amount) || 0).toLocaleString()}</div>
           </div>
           <div class="amount-words">AMOUNT IN WORDS: ${numberToWords(Number(quote.total_amount) || 0)}</div>
+          ${(quote.bank_name || quote.account_number || quote.account_name) ? `
+          <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
+            <div style="font-weight: 900; font-size: 12px; color: #0f172a; text-transform: uppercase; margin-bottom: 5px;">BANK PAYMENT DETAILS:</div>
+            ${quote.bank_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Bank Name:</strong> ${quote.bank_name}</div>` : ''}
+            ${quote.account_number ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Number:</strong> ${quote.account_number}</div>` : ''}
+            ${quote.account_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Name:</strong> ${quote.account_name}</div>` : ''}
+          </div>
+          ` : ''}
           ${quote.notes ? `<div class="notes-box"><strong>NOTES:</strong><br/>${quote.notes}</div>` : ''}
         </div>
       </div>
@@ -568,6 +582,15 @@ export default function PerformanceQuotes() {
           AMOUNT IN WORDS: ${numberToWords(Number(quote.total_amount) || 0)}
         </div>
 
+        ${(quote.bank_name || quote.account_number || quote.account_name) ? `
+        <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
+          <div style="font-weight: 900; font-size: 12px; color: #0f172a; text-transform: uppercase; margin-bottom: 5px;">BANK PAYMENT DETAILS:</div>
+          ${quote.bank_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Bank Name:</strong> ${quote.bank_name}</div>` : ''}
+          ${quote.account_number ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Number:</strong> ${quote.account_number}</div>` : ''}
+          ${quote.account_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Name:</strong> ${quote.account_name}</div>` : ''}
+        </div>
+        ` : ''}
+
         ${quote.notes ? `
         <div class="notes-box">
           <strong>NOTES / TERMS:</strong><br/>
@@ -628,19 +651,19 @@ export default function PerformanceQuotes() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <FileSignature className="w-3.5 h-3.5 text-emerald-400/60" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400/60">Sales & Proposals</span>
+            <FileSignature className="w-3.5 h-3.5 text-emerald-500/60" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-500/60">Sales & Proposals</span>
           </div>
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
             Proforma Quotes
           </h1>
-          <p className="text-xs text-white/40 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Create and manage multi-vehicle proforma quotes with dynamic duty pricing.
           </p>
         </div>
         {canCreate(role, "performance-quotes", permissions) && (
           <div className="flex gap-2 shrink-0">
-            <Button size="sm" onClick={() => setDialogOpen(true)} className="rounded-xl transition-all font-semibold text-xs h-10 px-5 text-white cursor-pointer" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
+            <Button size="sm" onClick={() => setDialogOpen(true)} className="rounded-xl transition-all font-semibold text-xs h-10 px-5 bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer">
               <PlusCircle className="mr-2 h-4 w-4" /> New Quote
             </Button>
           </div>
@@ -671,22 +694,22 @@ export default function PerformanceQuotes() {
 
       {/* List */}
       <div className="bento-card overflow-hidden">
-        <div className="p-4 border-b border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="p-4 border-b border-border/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="relative w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input 
               placeholder="Search quotes by customer or ID..." 
               value={search} 
               onChange={(e) => setSearch(e.target.value)} 
-              className="pl-10 bg-background/50 border-white/10"
+              className="pl-10"
             />
           </div>
           <div className="flex gap-2 shrink-0 flex-wrap sm:flex-nowrap">
             <Select value={selectedMonth} onValueChange={(v) => { setSelectedMonth(v); }}>
-              <SelectTrigger className="w-[160px] h-10 rounded-xl bg-background/50 border-white/10 focus-visible:ring-emerald-500 text-sm">
+              <SelectTrigger className="w-[160px] h-10 rounded-xl focus-visible:ring-emerald-500 text-sm">
                 <SelectValue placeholder="Select Month" />
               </SelectTrigger>
-              <SelectContent className="glass-panel w-[160px] rounded-xl">
+              <SelectContent className="w-[160px] rounded-xl">
                 <SelectItem value="all" className="rounded-lg">All Time</SelectItem>
                 {Array.from({ length: 12 }).map((_, i) => {
                   const d = subMonths(new Date(), i);
@@ -700,10 +723,10 @@ export default function PerformanceQuotes() {
             </Select>
 
             <Select value={selectedWeek} onValueChange={(v) => { setSelectedWeek(v); }}>
-              <SelectTrigger className="w-[120px] h-10 rounded-xl bg-background/50 border-white/10 focus-visible:ring-emerald-500 text-sm">
+              <SelectTrigger className="w-[120px] h-10 rounded-xl focus-visible:ring-emerald-500 text-sm">
                 <SelectValue placeholder="All Weeks" />
               </SelectTrigger>
-              <SelectContent className="glass-panel w-[120px] rounded-xl">
+              <SelectContent className="w-[120px] rounded-xl">
                 <SelectItem value="all" className="rounded-lg">All Weeks</SelectItem>
                 <SelectItem value="1" className="rounded-lg">Week 1</SelectItem>
                 <SelectItem value="2" className="rounded-lg">Week 2</SelectItem>
@@ -738,14 +761,14 @@ export default function PerformanceQuotes() {
               </TableHeader>
               <TableBody>
                 {filteredQuotes.map((q: any) => (
-                  <TableRow key={q.id} className="border-border/10 hover:bg-white/5 transition-colors group">
+                  <TableRow key={q.id} className="border-border/30 hover:bg-muted/40 transition-colors group">
                     <TableCell className="px-6 py-4 font-mono text-xs font-semibold text-emerald-500">
                       PQ-{q.id.slice(0, 8).toUpperCase()}
                     </TableCell>
                     <TableCell className="font-medium">{q.customers?.name || "Unknown"}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{new Date(q.quote_date).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1 bg-foreground/10 px-2 py-1 rounded-md w-fit text-xs font-semibold">
+                      <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md w-fit text-xs font-semibold">
                         <Car className="h-3 w-3" /> {q.performance_quote_items?.length || 0}
                       </div>
                     </TableCell>
@@ -758,7 +781,7 @@ export default function PerformanceQuotes() {
                               <Printer className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="glass-panel border-white/10 rounded-xl p-1">
+                          <DropdownMenuContent align="end" className="rounded-xl p-1">
                             <DropdownMenuItem onClick={() => handlePrint(q)} className="rounded-lg cursor-pointer gap-2">
                               <Printer className="h-4 w-4 text-emerald-500" /> Print Quote
                             </DropdownMenuItem>
@@ -784,7 +807,7 @@ export default function PerformanceQuotes() {
           </div>
 
           {/* Mobile Card View */}
-          <div className="md:hidden divide-y divide-white/5">
+          <div className="md:hidden divide-y divide-border/30">
             {filteredQuotes.map((q: any) => (
               <div key={q.id} className="p-4 space-y-4">
                 <div className="flex justify-between items-start">
@@ -811,7 +834,7 @@ export default function PerformanceQuotes() {
                           <Download className="h-3.5 w-3.5" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="glass-panel border-white/10 rounded-xl p-1">
+                      <DropdownMenuContent align="end" className="rounded-xl p-1">
                         <DropdownMenuItem onClick={() => downloadQuotePDF(q, false)} className="rounded-lg cursor-pointer gap-2 text-xs">
                           <Download className="h-4 w-4 text-amber-500" /> PDF Quote
                         </DropdownMenuItem>
@@ -837,8 +860,8 @@ export default function PerformanceQuotes() {
 
       {/* New Quote Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl glass-panel border-white/10 p-0 shadow-2xl">
-          <div className="sticky top-0 z-10 glass-panel border-b border-white/10 p-4 sm:p-6 flex justify-between items-center bg-background/80 backdrop-blur-xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-border p-0 shadow-2xl">
+          <div className="sticky top-0 z-10 border-b border-border p-4 sm:p-6 flex justify-between items-center bg-background/95 backdrop-blur-xl">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" onClick={closeDialog} className="sm:hidden h-8 w-8 rounded-full shrink-0">
                 <ArrowLeft className="w-4 h-4" />
@@ -866,7 +889,7 @@ export default function PerformanceQuotes() {
                   <CustomerSelect customers={customers} value={form.customerId} onValueChange={(val) => setForm(p => ({...p, customerId: val}))} />
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-white/10 rounded-xl bg-black/20">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-border rounded-xl bg-muted/30">
                   <div className="space-y-1">
                     <Label>Customer Name *</Label>
                     <Input value={form.manualCustomer.name} onChange={e => setForm(p => ({...p, manualCustomer: {...p.manualCustomer, name: e.target.value}}))} />
@@ -923,14 +946,14 @@ export default function PerformanceQuotes() {
                     />
                   </div>
                   {vehicleSearch && (
-                    <div className="border border-white/10 rounded-xl bg-black/40 overflow-hidden max-h-[200px] overflow-y-auto">
+                    <div className="border border-border rounded-xl bg-background overflow-hidden max-h-[200px] overflow-y-auto shadow-md">
                       {vehicles.filter(v =>
                         (v.make.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
                          v.model.toLowerCase().includes(vehicleSearch.toLowerCase()) ||
                          (v.vin && v.vin.toLowerCase().includes(vehicleSearch.toLowerCase()))) &&
                         !form.selectedVehicles.some(sv => sv.id === v.id)
                       ).map(v => (
-                        <div key={v.id} className="p-3 border-b border-white/5 hover:bg-white/5 flex justify-between items-center cursor-pointer" onClick={() => handleAddVehicle(v)}>
+                        <div key={v.id} className="p-3 border-b border-border/30 hover:bg-muted/50 flex justify-between items-center cursor-pointer" onClick={() => handleAddVehicle(v)}>
                           <div>
                             <p className="font-semibold text-sm">{v.year} {v.make} {v.model}</p>
                             <p className="text-xs text-muted-foreground font-mono">{v.vin}</p>
@@ -1009,7 +1032,7 @@ export default function PerformanceQuotes() {
               {form.selectedVehicles.length > 0 && (
                 <div className="space-y-4 mt-6">
                   {form.selectedVehicles.map((sv, idx) => (
-                    <div key={sv.id} className="p-4 border border-white/10 rounded-2xl bg-gradient-to-br from-white/5 to-transparent relative">
+                    <div key={sv.id} className="p-4 border border-border rounded-2xl bg-muted/20 relative">
                       <button onClick={() => handleRemoveVehicle(sv.id)} className="absolute top-4 right-4 text-muted-foreground hover:text-destructive">
                         <X className="h-5 w-5" />
                       </button>
@@ -1045,12 +1068,12 @@ export default function PerformanceQuotes() {
                                   if (!isNaN(parsed)) updateVehicleData(sv.id, "quantity", parsed);
                                 }
                               }}
-                              className="bg-background/50 border-white/10"
+                              className=""
                             />
                           </div>
                         </div>
                         
-                        <div className="space-y-3 p-4 bg-black/20 rounded-xl border border-white/5 flex flex-col justify-center">
+                        <div className="space-y-3 p-4 bg-muted/30 rounded-xl border border-border flex flex-col justify-center">
                           <div className="flex items-center space-x-2">
                             <Checkbox 
                               id={`duty-${sv.id}`} 
@@ -1081,10 +1104,47 @@ export default function PerformanceQuotes() {
               )}
             </div>
 
+            {/* Account Details */}
+            <div className="p-4 border border-border/80 rounded-2xl bg-muted/40 space-y-3">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-emerald-500" />
+                <h4 className="font-semibold text-sm text-foreground">Bank Account Details (Optional)</h4>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Enter bank details to display on the printed proforma quote for customer payments.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div className="space-y-1">
+                  <Label className="text-xs">Bank Name</Label>
+                  <Input
+                    placeholder="e.g. Zenith Bank"
+                    value={form.bankName}
+                    onChange={e => setForm(p => ({ ...p, bankName: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Account Number</Label>
+                  <Input
+                    placeholder="e.g. 1023456789"
+                    value={form.accountNumber}
+                    onChange={e => setForm(p => ({ ...p, accountNumber: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Account Name</Label>
+                  <Input
+                    placeholder="e.g. Lamido Cars Ltd"
+                    value={form.accountName}
+                    onChange={e => setForm(p => ({ ...p, accountName: e.target.value }))}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Notes */}
             <div className="space-y-2">
               <Label>Additional Notes / Terms</Label>
-              <Textarea placeholder="Enter any special conditions, validity period, etc." value={form.notes} onChange={e => setForm(p => ({...p, notes: e.target.value}))} rows={3} className="bg-black/20 rounded-xl" />
+              <Textarea placeholder="Enter any special conditions, validity period, etc." value={form.notes} onChange={e => setForm(p => ({...p, notes: e.target.value}))} rows={3} className="bg-muted/30 rounded-xl" />
             </div>
           </div>
 

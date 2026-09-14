@@ -1259,9 +1259,6 @@ export default function Sales() {
                         <Button variant="ghost" size="sm" className="h-8 rounded-lg hover:bg-emerald-500/10 hover:text-emerald-500" onClick={() => setPaymentSaleId(s.id)}>
                           <DollarSign className="h-4 w-4 mr-1.5" /> Payments
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-8 rounded-lg hover:bg-violet-500/10 hover:text-violet-500" onClick={() => navigate(`/invoices?action=create&customer_id=${s.customer_id}&sale_id=${s.id}&type=sale`)}>
-                          <FileOutput className="h-4 w-4 mr-1.5" /> Invoice
-                        </Button>
                         {hasEdit && (
                           <>
                             <Button variant="ghost" size="icon" onClick={() => openEdit(s)} className="h-8 w-8 rounded-lg hover:bg-foreground/20">

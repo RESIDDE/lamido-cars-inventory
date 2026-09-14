@@ -29,7 +29,6 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: "Customers",        url: "/customers",          pageKey: "customers",          icon: Users },
   { title: "Sales",            url: "/sales",              pageKey: "sales",              icon: (props) => <NairaIcon {...props} /> },
   { title: "Proforma Quotes",  url: "/performance-quotes", pageKey: "performance-quotes", icon: FileSignature },
-  { title: "Invoices",         url: "/invoices",           pageKey: "invoices",           icon: FileText },
   { title: "Company Expenses", url: "/expenses",           pageKey: "expenses",           icon: Receipt },
   { title: "Inquiries",        url: "/inquiries",          pageKey: "inquiries",          icon: MessageSquare },
   { title: "Auth. Form",       url: "/authority-to-sell",  pageKey: "authority-to-sell",  icon: FileSignature },
@@ -42,7 +41,6 @@ const PREFETCH_MAP: Record<string, () => Promise<any>> = {
   "/customers":          () => import("@/pages/Customers"),
   "/sales":              () => import("@/pages/Sales"),
   "/performance-quotes": () => import("@/pages/PerformanceQuotes"),
-  "/invoices":           () => import("@/pages/Invoices"),
   "/expenses":           () => import("@/pages/Expenses"),
   "/inquiries":          () => import("@/pages/Inquiries"),
   "/authority-to-sell":  () => import("@/pages/AuthorityToSell"),
@@ -81,19 +79,12 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderRight: "1px solid rgba(255,255,255,0.08)",
-      }}
+      className="bg-sidebar border-r border-sidebar-border"
     >
-
-
       {/* ── Nav ──────────────────────────────────────────── */}
       <SidebarContent className="flex flex-col justify-between h-full">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white/30 text-[10px] uppercase tracking-widest font-black px-4 pt-4 pb-2">
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest font-black px-4 pt-4 pb-2">
             Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -105,20 +96,11 @@ export function AppSidebar() {
                       to={item.url}
                       end={item.url === "/dashboard"}
                       onClick={handleNavClick}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white/50 hover:text-white/90 w-full"
-                      activeClassName="text-white/90 font-semibold"
-                      activeStyle={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.9)" }}
-                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        handlePrefetch(item.url);
-                        const el = e.currentTarget as HTMLElement;
-                        if (!el.dataset.active) el.style.background = "rgba(255,255,255,0.05)";
-                      }}
-                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        const el = e.currentTarget as HTMLElement;
-                        if (!el.dataset.active) el.style.background = "";
-                      }}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 w-full"
+                      activeClassName="text-sidebar-foreground font-semibold bg-sidebar-accent shadow-sm"
+                      onMouseEnter={() => handlePrefetch(item.url)}
                     >
-                      {(() => { const Icon = item.icon; return <Icon className="h-[18px] w-[18px] shrink-0 opacity-70" />; })()}
+                      {(() => { const Icon = item.icon; return <Icon className="h-[18px] w-[18px] shrink-0 opacity-80" />; })()}
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </div>
@@ -132,19 +114,11 @@ export function AppSidebar() {
                     <NavLink
                       to="/settings"
                       onClick={handleNavClick}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-white/40 hover:text-white/80 w-full"
-                      activeClassName="text-white/90 font-semibold"
-                      activeStyle={{ background: "rgba(255,255,255,0.08)" }}
-                      onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        const el = e.currentTarget as HTMLElement;
-                        if (!el.dataset.active) el.style.background = "rgba(255,255,255,0.05)";
-                      }}
-                      onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                        const el = e.currentTarget as HTMLElement;
-                        if (!el.dataset.active) el.style.background = "";
-                      }}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 w-full"
+                      activeClassName="text-sidebar-foreground font-semibold bg-sidebar-accent shadow-sm"
+                      onMouseEnter={() => handlePrefetch("/settings")}
                     >
-                      <Crown className="h-[18px] w-[18px] shrink-0 opacity-70" />
+                      <Crown className="h-[18px] w-[18px] shrink-0 opacity-80" />
                       {!collapsed && <span>Settings</span>}
                     </NavLink>
                   </div>
@@ -155,13 +129,13 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* ── Sign Out Button at Bottom ──────────────────── */}
-        <div className="p-3 mt-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="p-3 mt-auto border-t border-sidebar-border/60">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
             title="Sign Out"
           >
-            <LogOut className="h-[18px] w-[18px] shrink-0 text-red-400/80" />
+            <LogOut className="h-[18px] w-[18px] shrink-0 text-destructive/80" />
             {!collapsed && <span>Sign Out</span>}
           </button>
         </div>
