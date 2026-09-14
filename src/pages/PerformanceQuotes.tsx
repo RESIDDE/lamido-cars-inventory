@@ -28,7 +28,7 @@ import { canEdit, canCreate } from "@/lib/permissions";
 import { toast } from "sonner";
 import { 
   PlusCircle, Search, Printer, Trash2, FileText, FileSignature, Car, 
-  BarChart3, Package, Settings, ExternalLink, X, Building2
+  BarChart3, Package, Settings, ExternalLink, X, Building2, Pencil
 } from "lucide-react";
 import { getPrintHeaderHTML, getPrintWatermarkHTML } from "@/components/PrintHeader";
 import { getPrintFooterHTML } from "@/components/PrintFooter";
@@ -50,6 +50,7 @@ export default function PerformanceQuotes() {
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [selectedWeek, setSelectedWeek] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<any>(null);
   
   const emptyForm = {
     customerMode: "existing" as "existing" | "manual",
@@ -204,6 +205,83 @@ export default function PerformanceQuotes() {
     onSettled: () => setIsSubmitting(false),
   });
 
+  const updateQuoteMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingQuote) throw new Error("No quote selected for editing");
+
+      let finalCustomerId = form.customerId;
+
+      if (form.customerMode === "manual") {
+        if (!form.manualCustomer.name.trim()) throw new Error("Customer name is required");
+        const { data: cust, error: custErr } = await supabase
+          .from("customers")
+          .insert({
+            name: form.manualCustomer.name.trim(),
+            phone: form.manualCustomer.phone.trim() || null,
+            email: form.manualCustomer.email.trim() || null,
+            address: form.manualCustomer.address.trim() || null,
+          })
+          .select()
+          .single();
+        if (custErr) throw custErr;
+        finalCustomerId = cust.id;
+      } else {
+        if (!finalCustomerId) throw new Error("Please select a customer");
+      }
+
+      if (form.selectedVehicles.length === 0) throw new Error("Please select at least one vehicle");
+
+      const totalAmount = form.selectedVehicles.reduce((sum, v) => {
+        const qty = v.quantity || 1;
+        return sum + ((Number(v.base_price) || 0) * qty) + (v.has_duty ? ((Number(v.duty_price) || 0) * qty) : 0);
+      }, 0);
+
+      // Update quote header
+      const { error: updateErr } = await supabase
+        .from("performance_quotes" as any)
+        .update({
+          customer_id: finalCustomerId,
+          total_amount: totalAmount,
+          bank_name: form.bankName.trim() || null,
+          account_number: form.accountNumber.trim() || null,
+          account_name: form.accountName.trim() || null,
+          notes: form.notes.trim() || null,
+        })
+        .eq("id", editingQuote.id);
+      if (updateErr) throw updateErr;
+
+      // Delete old items and re-insert fresh ones
+      const { error: delErr } = await supabase
+        .from("performance_quote_items" as any)
+        .delete()
+        .eq("quote_id", editingQuote.id);
+      if (delErr) throw delErr;
+
+      const items = form.selectedVehicles.map((v) => ({
+        quote_id: editingQuote.id,
+        vehicle_id: v.isManual ? null : v.id,
+        vehicle_description: v.isManual ? v.vehicleDescription : null,
+        base_price: Number(v.base_price) || 0,
+        has_duty: v.has_duty,
+        duty_price: Number(v.duty_price) || 0,
+        quantity: Number(v.quantity) || 1,
+      }));
+
+      const { error: itemsErr } = await supabase.from("performance_quote_items" as any).insert(items);
+      if (itemsErr) throw itemsErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["performance_quotes"] });
+      logAction("UPDATE", "Proforma Quote", editingQuote?.id);
+      toast.success("Proforma quote updated successfully!");
+      closeDialog();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update quote");
+    },
+    onSettled: () => setIsSubmitting(false),
+  });
+
   const deleteQuoteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("performance_quotes" as any).delete().eq("id", id);
@@ -217,8 +295,46 @@ export default function PerformanceQuotes() {
     onError: () => toast.error("Failed to delete quote"),
   });
 
+  const openEditDialog = (quote: any) => {
+    // Map existing quote items into the form vehicle shape
+    const mappedVehicles = (quote.performance_quote_items || []).map((item: any) => {
+      const v = item.vehicles;
+      const isManual = !item.vehicle_id;
+      return {
+        id: isManual ? `manual-${item.id}` : item.vehicle_id,
+        make: v?.make || "",
+        model: v?.model || "",
+        year: v?.year || "",
+        vin: v?.vin || "",
+        base_price: String(item.base_price ?? "0"),
+        has_duty: !!item.has_duty,
+        duty_price: String(item.duty_price ?? "0"),
+        quantity: Number(item.quantity) || 1,
+        isManual,
+        vehicleDescription: item.vehicle_description || "",
+      };
+    });
+
+    setForm({
+      customerMode: "existing",
+      customerId: quote.customer_id || "",
+      manualCustomer: { name: "", phone: "", email: "", address: "" },
+      selectedVehicles: mappedVehicles,
+      bankName: quote.bank_name || "",
+      accountNumber: quote.account_number || "",
+      accountName: quote.account_name || "",
+      notes: quote.notes || "",
+    });
+    setEditingQuote(quote);
+    setVehicleSearch("");
+    setVehicleMode("inventory");
+    setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "" });
+    setDialogOpen(true);
+  };
+
   const closeDialog = () => {
     setDialogOpen(false);
+    setEditingQuote(null);
     setForm(emptyForm);
     setVehicleSearch("");
     setVehicleMode("inventory");
@@ -794,9 +910,14 @@ export default function PerformanceQuotes() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                         {hasEdit && (
-                          <Button variant="ghost" size="icon" onClick={() => deleteQuoteMutation.mutate(q.id)} className="h-8 w-8 rounded-lg hover:bg-destructive/20 hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <>
+                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(q)} className="h-8 w-8 rounded-lg hover:bg-blue-500/20 hover:text-blue-500">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => deleteQuoteMutation.mutate(q.id)} className="h-8 w-8 rounded-lg hover:bg-destructive/20 hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
                         )}
                       </div>
                     </TableCell>
@@ -845,9 +966,14 @@ export default function PerformanceQuotes() {
                     </DropdownMenu>
                     
                     {hasEdit && (
-                      <Button variant="ghost" size="sm" onClick={() => deleteQuoteMutation.mutate(q.id)} className="h-8 rounded-lg hover:bg-destructive/20 text-destructive">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      <>
+                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(q)} className="h-8 rounded-lg hover:bg-blue-500/10 text-blue-500">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteQuoteMutation.mutate(q.id)} className="h-8 rounded-lg hover:bg-destructive/20 text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -867,7 +993,11 @@ export default function PerformanceQuotes() {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <FileSignature className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" /> Create Proforma Quote
+                {editingQuote ? (
+                  <><Pencil className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" /> Edit Proforma Quote</>
+                ) : (
+                  <><FileSignature className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" /> Create Proforma Quote</>
+                )}
               </DialogTitle>
             </div>
             <Button variant="ghost" size="icon" onClick={closeDialog} className="hidden sm:flex rounded-full"><X className="h-5 w-5" /></Button>
@@ -1148,14 +1278,28 @@ export default function PerformanceQuotes() {
             </div>
           </div>
 
-          <DialogFooter className="p-6 border-t border-white/10 bg-black/40">
+          <DialogFooter className="p-6 border-t border-border bg-muted/30">
             <Button variant="outline" onClick={closeDialog} className="rounded-xl">Cancel</Button>
             <Button 
-              onClick={() => { setIsSubmitting(true); createQuoteMutation.mutate(); }} 
+              onClick={() => {
+                setIsSubmitting(true);
+                if (editingQuote) {
+                  updateQuoteMutation.mutate();
+                } else {
+                  createQuoteMutation.mutate();
+                }
+              }} 
               disabled={isSubmitting || form.selectedVehicles.length === 0 || (form.customerMode === 'manual' && !form.manualCustomer.name.trim()) || (form.customerMode === 'existing' && !form.customerId)}
-              className="rounded-xl bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
+              className={`rounded-xl shadow-lg ${
+                editingQuote
+                  ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/20"
+                  : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
+              }`}
             >
-              {isSubmitting ? "Generating..." : "Generate Quote"}
+              {isSubmitting
+                ? (editingQuote ? "Saving..." : "Generating...")
+                : (editingQuote ? "Save Changes" : "Generate Quote")
+              }
             </Button>
           </DialogFooter>
         </DialogContent>

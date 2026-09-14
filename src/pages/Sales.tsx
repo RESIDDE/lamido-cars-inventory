@@ -494,20 +494,6 @@ export default function Sales() {
             </div>
           </div>
 
-          <div class="refund-note">
-            NOTICE: NO REFUND AFTER PAYMENT
-          </div>
-
-          <div class="signature-area">
-            <div class="sig-box">
-              ${sale.buyer_signature ? `<img src="${sale.buyer_signature}" class="signature-img" />` : '<div style="height:40px"></div>'}
-              <p style="border-top: 1px solid #1a1a1a; padding-top: 4px; margin-top: 0;"><strong>CUSTOMER SIGNATURE</strong></p>
-            </div>
-            <div class="sig-box">
-               ${sale.rep_signature ? `<img src="${sale.rep_signature}" class="signature-img" />` : '<div style="height:40px"></div>'}
-              <p style="border-top: 1px solid #1a1a1a; padding-top: 4px; margin-top: 0;"><strong>FOR: Lamido Cars Ltd.</strong></p>
-            </div>
-          </div>
         </div>
       </div>
     </div>`;
@@ -548,7 +534,7 @@ export default function Sales() {
       .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; padding: 0 20px; }
       .bill-to { margin-bottom: 8px; padding: 0 20px; }
       .bill-to p { margin: 1px 0; font-size: 12px; }
-      .main-container { background-color: transparent; border-radius: 20px; padding: 0px 20px; position: relative; border: none; }
+      .main-container { background-color: transparent; border-radius: 20px; padding: 0px 20px; min-height: 550px; position: relative; border: none; }
       .content-wrapper { position: relative; z-index: 1; }
       .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 16px; margin-bottom: 8px; color: #1e293b; text-transform: uppercase; }
       .deposit-badge { display: inline-block; background: ${badgeColor}; color: #fff; font-weight: 900; font-size: 10px; padding: 3px 12px; border-radius: 20px; letter-spacing: 2px; text-transform: uppercase; margin: 0 auto 8px; }
@@ -643,20 +629,10 @@ export default function Sales() {
           </table>
         </div>` : ""}
 
-        <div class="refund-note">NOTICE: NO REFUND AFTER PAYMENT</div>
-        <div class="signature-area">
-          <div class="sig-box">
-            ${sale.buyer_signature ? `<img src="${sale.buyer_signature}" class="signature-img" />` : '<div style="height:45px"></div>'}
-            <p style="border-top: 1px solid #1a1a1a; padding-top: 5px;"><strong>CUSTOMER SIGNATURE</strong></p>
-          </div>
-          <div class="sig-box">
-            ${sale.rep_signature ? `<img src="${sale.rep_signature}" class="signature-img" />` : '<div style="height:45px"></div>'}
-            <p style="border-top: 1px solid #1a1a1a; padding-top: 5px;"><strong>FOR: Lamido Cars Ltd.</strong></p>
-          </div>
         </div>
       </div>
     </div>
-    ${getPrintFooterHTML()}
+    ${getPrintFooterHTML(sale.buyer_signature, sale.rep_signature)}
     </body></html>`;
 
     const win = window.open("", "_blank");
@@ -683,7 +659,7 @@ export default function Sales() {
         background-color: transparent;
         border-radius: 20px;
         padding: 0px 20px;
-        min-height: auto;
+        min-height: 550px;
         position: relative;
         border: none;
       }
@@ -696,7 +672,7 @@ export default function Sales() {
     </style></head><body>
     ${getPrintHeaderHTML()}
     ${printReceipt(sale)}
-    ${getPrintFooterHTML()}
+    ${getPrintFooterHTML(sale.buyer_signature, sale.rep_signature)}
     </body></html>`;
     const win = window.open("", "_blank");
     if (win) { 
@@ -748,7 +724,7 @@ export default function Sales() {
         </style></head><body>
         ${getPrintHeaderHTML(logoBase64)}
         ${printReceipt(sale, false, logoBase64)}
-        ${getPrintFooterHTML()}
+        ${getPrintFooterHTML(sale.buyer_signature, sale.rep_signature)}
         </body></html>`;
 
       const iframe = document.createElement("iframe");
@@ -858,7 +834,7 @@ export default function Sales() {
         background-color: transparent;
         border-radius: 20px;
         padding: 20px;
-        min-height: auto;
+        min-height: 550px;
         position: relative;
         border: none;
       }
@@ -876,7 +852,7 @@ export default function Sales() {
       <div class="receipt-page">
         ${getPrintHeaderHTML()}
         ${printReceipt(sale)}
-        ${getPrintFooterHTML()}
+        ${getPrintFooterHTML(sale.buyer_signature, sale.rep_signature)}
       </div>
     `).join("")}
     </body></html>`;

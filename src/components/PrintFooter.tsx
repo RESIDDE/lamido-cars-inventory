@@ -1,18 +1,31 @@
 import React from 'react';
 
+interface PrintFooterProps {
+  customerSignature?: string;
+  companySignature?: string;
+}
+
 // For use inside React DOM trees (like AuthorityToSell.tsx)
-export function PrintFooter() {
+export function PrintFooter({ customerSignature, companySignature }: PrintFooterProps = {}) {
   return (
     <div className="mt-4 pt-2 break-inside-avoid print:break-inside-avoid relative">
       {/* Signature section */}
       <div className="flex justify-between items-end mb-4 px-1">
         <div className="text-left">
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-800 mb-1.5">CUSTOMER'S SIGN</p>
-          <div className="w-[160px] h-[36px] border border-gray-400 bg-white"></div>
+          <div className="w-[160px] h-[36px] border border-gray-400 bg-white flex items-center justify-center overflow-hidden">
+            {customerSignature ? (
+              <img src={customerSignature} alt="Customer Signature" className="max-h-[34px] max-w-[150px] object-contain" />
+            ) : null}
+          </div>
         </div>
         <div className="text-left">
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-800 mb-1.5">LAMIDO CARS LTD. SIGN</p>
-          <div className="w-[160px] h-[36px] border border-gray-400 bg-white"></div>
+          <div className="w-[160px] h-[36px] border border-gray-400 bg-white flex items-center justify-center overflow-hidden">
+            {companySignature ? (
+              <img src={companySignature} alt="Company Signature" className="max-h-[34px] max-w-[150px] object-contain" />
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -33,18 +46,29 @@ export function PrintFooter() {
   );
 }
 
-export function getPrintFooterHTML() {
+export function getPrintFooterHTML(customerSignature?: string, companySignature?: string) {
+  const custSigHTML = customerSignature 
+    ? `<img src="${customerSignature}" style="max-height: 32px; max-width: 145px; object-fit: contain; display: block; margin: 0 auto;" />`
+    : '';
+  const compSigHTML = companySignature 
+    ? `<img src="${companySignature}" style="max-height: 32px; max-width: 145px; object-fit: contain; display: block; margin: 0 auto;" />`
+    : '';
+
   return `
     <div style="margin-top: 14px; padding-top: 4px; page-break-inside: avoid; break-inside: avoid; position: relative;">
       <!-- Signature section -->
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; padding: 0 2px;">
         <div style="text-align: left;">
           <p style="font-family: Arial, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #222; margin: 0 0 5px 0;">CUSTOMER'S SIGN</p>
-          <div style="width: 155px; height: 34px; border: 1px solid #777; background: #fff;"></div>
+          <div style="width: 155px; height: 34px; border: 1px solid #777; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            ${custSigHTML}
+          </div>
         </div>
         <div style="text-align: left;">
           <p style="font-family: Arial, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #222; margin: 0 0 5px 0;">LAMIDO CARS LTD. SIGN</p>
-          <div style="width: 155px; height: 34px; border: 1px solid #777; background: #fff;"></div>
+          <div style="width: 155px; height: 34px; border: 1px solid #777; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            ${compSigHTML}
+          </div>
         </div>
       </div>
       

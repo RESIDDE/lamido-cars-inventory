@@ -60,7 +60,7 @@ export function getPrintHeaderHTML(base64Logo?: string) {
 export function PrintWatermark() {
   return (
     <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.4] select-none">
-      <img src={logo} alt="Watermark" className="w-[500px] h-[500px] object-contain opacity-20" />
+      <img src={logo} alt="Watermark" className="w-[500px] h-[500px] object-contain opacity-10" />
     </div>
   );
 }
@@ -71,19 +71,22 @@ export function getPrintWatermarkHTML(base64Logo?: string) {
   return `
     <div style="
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 100%;
       height: 100%;
+      min-height: 500px;
       display: flex;
       align-items: center;
       justify-content: center;
       pointer-events: none;
       z-index: 0;
-      opacity: 0.15;
+      opacity: 0.05;
       user-select: none;
     ">
-      <img src="${logoUrl}" style="width: 550px; height: 550px; max-width: 90%; max-height: 90%; object-fit: contain;" />
+      <img src="${logoUrl}" style="width: 550px; height: 550px; max-width: 85%; max-height: 550px; object-fit: contain;" />
     </div>
   `;
 }
+

@@ -88,7 +88,7 @@ function defaultPageConfig(overrides?: Partial<PageConfig>): PageConfig {
   return {
     letterhead: true,
     watermark: false,
-    watermarkOpacity: 0.07,
+    watermarkOpacity: 0.05,
     border: {
       enabled: false,
       color: "#1e3a5f",
@@ -671,7 +671,7 @@ export function RichTextEditor({ initialData, onSave, onBack }: RichTextEditorPr
         border: { enabled: true, color: "#1e3a5f", thickness: 6, offset: 16, style: "solid", radius: 0 },
         background: { type: "gradient", color: "#ffffff", gradient: "linear-gradient(180deg, #1a6b9a 0%, #0d4a7a 100%)" },
         watermark: false,
-        watermarkOpacity: 0.07,
+        watermarkOpacity: 0.05,
       }),
     };
     setPages(prev => [cover, ...prev]);
