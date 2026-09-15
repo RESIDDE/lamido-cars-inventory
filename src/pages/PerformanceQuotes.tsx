@@ -429,7 +429,7 @@ export default function PerformanceQuotes() {
         .bill-to p { margin: 1px 0; font-size: 13px; }
         .main-container { position: relative; padding: 5px 20px; min-height: 600px; }
         .content-wrapper { position: relative; z-index: 1; }
-        .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 20px; margin-bottom: 10px; color: #1e293b; text-transform: uppercase; }
+        .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 20px; margin-bottom: 10px; color: #1E3A8A; text-transform: uppercase; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         th, td { border: 1px solid #475569; padding: 8px 10px; text-align: left; font-size: 13px; font-weight: 600; }
         th { text-transform: uppercase; }
@@ -496,11 +496,11 @@ export default function PerformanceQuotes() {
           </div>
           <div class="amount-words">AMOUNT IN WORDS: ${numberToWords(Number(quote.total_amount) || 0)}</div>
           ${(quote.bank_name || quote.account_number || quote.account_name) ? `
-          <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
-            <div style="font-weight: 900; font-size: 12px; color: #0f172a; text-transform: uppercase; margin-bottom: 5px;">BANK PAYMENT DETAILS:</div>
-            ${quote.bank_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Bank Name:</strong> ${quote.bank_name}</div>` : ''}
-            ${quote.account_number ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Number:</strong> ${quote.account_number}</div>` : ''}
-            ${quote.account_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Name:</strong> ${quote.account_name}</div>` : ''}
+          <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1.5px solid #94a3b8; border-radius: 8px; background: transparent;">
+            <div style="font-weight: 900; font-size: 13px; color: #1E3A8A; text-transform: uppercase; margin-bottom: 6px;">BANK PAYMENT DETAILS:</div>
+            ${quote.bank_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Bank Name:</strong> <strong>${quote.bank_name}</strong></div>` : ''}
+            ${quote.account_number ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Number:</strong> <strong>${quote.account_number}</strong></div>` : ''}
+            ${quote.account_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Name:</strong> <strong>${quote.account_name}</strong></div>` : ''}
           </div>
           ` : ''}
           ${quote.notes ? `<div class="notes-box"><strong>NOTES:</strong><br/>${quote.notes}</div>` : ''}
@@ -580,7 +580,7 @@ export default function PerformanceQuotes() {
         min-height: 600px;
       }
       .content-wrapper { position: relative; z-index: 1; }
-      .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 18px; margin-bottom: 10px; color: #1e293b; text-transform: uppercase; }
+      .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 18px; margin-bottom: 10px; color: #1E3A8A; text-transform: uppercase; }
       
       table { width: 100%; border-collapse: collapse; background: transparent; margin-bottom: 10px; }
       th, td { border: 1px solid #475569; padding: 8px 10px; text-align: left; font-size: 13px; font-weight: 600; }
@@ -699,11 +699,11 @@ export default function PerformanceQuotes() {
         </div>
 
         ${(quote.bank_name || quote.account_number || quote.account_name) ? `
-        <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
-          <div style="font-weight: 900; font-size: 12px; color: #0f172a; text-transform: uppercase; margin-bottom: 5px;">BANK PAYMENT DETAILS:</div>
-          ${quote.bank_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Bank Name:</strong> ${quote.bank_name}</div>` : ''}
-          ${quote.account_number ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Number:</strong> ${quote.account_number}</div>` : ''}
-          ${quote.account_name ? `<div style="font-size: 12px; margin: 2px 0;"><strong>Account Name:</strong> ${quote.account_name}</div>` : ''}
+        <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1.5px solid #94a3b8; border-radius: 8px; background: transparent;">
+          <div style="font-weight: 900; font-size: 13px; color: #1E3A8A; text-transform: uppercase; margin-bottom: 6px;">BANK PAYMENT DETAILS:</div>
+          ${quote.bank_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Bank Name:</strong> <strong>${quote.bank_name}</strong></div>` : ''}
+          ${quote.account_number ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Number:</strong> <strong>${quote.account_number}</strong></div>` : ''}
+          ${quote.account_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Name:</strong> <strong>${quote.account_name}</strong></div>` : ''}
         </div>
         ` : ''}
 
