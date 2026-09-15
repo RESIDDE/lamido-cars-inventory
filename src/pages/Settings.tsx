@@ -24,11 +24,13 @@ import {
   Shield, ShieldCheck, User, Users, Settings2,
   ToggleLeft, Eye, Pencil, Plus, RotateCcw, Lock, Activity,
   UserPlus, ArrowRightLeft, AlertTriangle, Trash2, ArrowLeft, Bell, Save, Car, Check,
+  Search, Download, RefreshCw, Filter,
 } from "lucide-react";
 import {
   ALL_PAGES, DEFAULT_PERMISSIONS, type AppRole, type PageKey, type PermissionsMap,
 } from "@/lib/permissions";
 import { logAction, describeLog } from "@/lib/logger";
+import { exportToExcel } from "@/lib/exportHelpers";
 
 type Tab = "team" | "permissions" | "system" | "audit";
 
@@ -189,20 +191,48 @@ export default function Settings() {
   const { data: usersData = [], isLoading } = useQuery({
     queryKey: ["users-roles"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("user_roles")
-        .select(`
-          id,
-          user_id,
-          role,
-          profile:profiles (
-            display_name,
-            phone,
-            avatar_url
-          )
-        `);
-      if (error) throw error;
-      return data || [];
+      const [rolesRes, profilesRes] = await Promise.all([
+        (supabase as any).from("user_roles").select("*"),
+        (supabase as any).from("profiles").select("*"),
+      ]);
+
+      if (rolesRes.error) {
+        console.error("Error fetching user_roles:", rolesRes.error);
+        throw rolesRes.error;
+      }
+
+      const roles = rolesRes.data || [];
+      const profiles = profilesRes.data || [];
+
+      // Build dictionary of profiles
+      const profileMap = new Map<string, any>();
+      profiles.forEach((p: any) => {
+        if (p.user_id) profileMap.set(p.user_id, p);
+        if (p.id) profileMap.set(p.id, p);
+      });
+
+      // Combine user_roles with profile metadata
+      const list = roles.map((r: any) => ({
+        id: r.id,
+        user_id: r.user_id,
+        role: r.role,
+        profile: profileMap.get(r.user_id) || null,
+      }));
+
+      // Include profiles that do not have a user_roles entry yet
+      profiles.forEach((p: any) => {
+        const uid = p.user_id || p.id;
+        if (uid && !list.some((u: any) => u.user_id === uid)) {
+          list.push({
+            id: `temp-${uid}`,
+            user_id: uid,
+            role: "pending",
+            profile: p,
+          });
+        }
+      });
+
+      return list;
     },
   });
 
@@ -222,19 +252,80 @@ export default function Settings() {
     },
   });
 
-  const { data: logs = [], isLoading: isLoadingLogs } = useQuery({
+  // Audit Logs State & Query
+  const [auditSearchQuery, setAuditSearchQuery] = useState("");
+  const [auditActionFilter, setAuditActionFilter] = useState("ALL");
+
+  const { data: logs = [], isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
     queryKey: ["audit_logs"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("audit_logs")
-        .select("*, profiles:user_id(display_name)")
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return data;
+      const [logsRes, profilesRes] = await Promise.all([
+        (supabase as any)
+          .from("audit_logs")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(300),
+        (supabase as any).from("profiles").select("*"),
+      ]);
+
+      if (logsRes.error) {
+        console.error("Error fetching audit_logs:", logsRes.error);
+        throw logsRes.error;
+      }
+
+      const rawLogs = logsRes.data || [];
+      const profiles = profilesRes.data || [];
+      const profileMap = new Map<string, any>();
+      profiles.forEach((p: any) => {
+        if (p.user_id) profileMap.set(p.user_id, p);
+        if (p.id) profileMap.set(p.id, p);
+      });
+
+      return rawLogs.map((log: any) => ({
+        ...log,
+        profiles: log.user_id ? profileMap.get(log.user_id) : null,
+      }));
     },
-    enabled: role === "admin" && tab === "audit",
+    enabled: tab === "audit",
   });
+
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log: any) => {
+      const matchesAction = auditActionFilter === "ALL" || log.action === auditActionFilter;
+      if (!matchesAction) return false;
+
+      if (!auditSearchQuery.trim()) return true;
+
+      const query = auditSearchQuery.toLowerCase();
+      const userName = (log.profiles?.display_name || log.details?._user_name || "").toLowerCase();
+      const action = (log.action || "").toLowerCase();
+      const entity = (log.entity_type || "").toLowerCase();
+      const description = describeLog(log).toLowerCase();
+
+      return (
+        userName.includes(query) ||
+        action.includes(query) ||
+        entity.includes(query) ||
+        description.includes(query)
+      );
+    });
+  }, [logs, auditSearchQuery, auditActionFilter]);
+
+  const handleExportAuditLogs = () => {
+    if (filteredLogs.length === 0) {
+      toast.error("No activity logs to export");
+      return;
+    }
+    const exportRows = filteredLogs.map((log: any) => ({
+      Date: new Date(log.created_at).toLocaleString(),
+      User: log.profiles?.display_name || log.details?._user_name || "System",
+      Action: log.action,
+      Module: log.entity_type || "N/A",
+      Description: describeLog(log),
+    }));
+    logAction("EXPORT", "Audit Logs", "bulk", { count: exportRows.length });
+    exportToExcel(exportRows, `audit_logs_${new Date().toISOString().split("T")[0]}`);
+  };
 
   // Mutations
   const updateRole = useMutation({
@@ -910,55 +1001,133 @@ export default function Settings() {
       {/* ── SYSTEM AUDIT LOGS TAB ── */}
       {tab === "audit" && (
         <div className="bento-card p-6 sm:p-8 space-y-6">
-          <div>
-            <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-              <Activity className="h-4 w-4 text-muted-foreground" /> Security Audit Log
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Live audit trail recording system actions, user logins, data changes, and security events.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-muted-foreground" /> Security Audit Log
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {filteredLogs.length} events
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Live audit trail recording system actions, user logins, data changes, and security events.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl border-border text-foreground hover:bg-muted text-xs h-9 px-3"
+                onClick={() => refetchLogs()}
+                disabled={isLoadingLogs}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoadingLogs ? "animate-spin" : ""}`} /> Refresh
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl border-border text-foreground hover:bg-muted text-xs h-9 px-3"
+                onClick={handleExportAuditLogs}
+              >
+                <Download className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> Export Excel
+              </Button>
+            </div>
+          </div>
+
+          {/* Search & Action Filters */}
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search audit logs by user, action, entity, or keyword..."
+                value={auditSearchQuery}
+                onChange={(e) => setAuditSearchQuery(e.target.value)}
+                className="pl-9 rounded-xl h-10 text-xs bg-background border-border"
+              />
+            </div>
+
+            <div className="w-full sm:w-[200px] shrink-0">
+              <Select value={auditActionFilter} onValueChange={setAuditActionFilter}>
+                <SelectTrigger className="rounded-xl h-10 text-xs bg-background border-border font-medium">
+                  <SelectValue placeholder="Filter by Action" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl font-medium">
+                  <SelectItem value="ALL" className="rounded-lg text-xs">All Actions</SelectItem>
+                  <SelectItem value="CREATE" className="rounded-lg text-xs">CREATE</SelectItem>
+                  <SelectItem value="UPDATE" className="rounded-lg text-xs">UPDATE</SelectItem>
+                  <SelectItem value="DELETE" className="rounded-lg text-xs">DELETE</SelectItem>
+                  <SelectItem value="LOGIN" className="rounded-lg text-xs">LOGIN</SelectItem>
+                  <SelectItem value="ROLE_CHANGE" className="rounded-lg text-xs">ROLE_CHANGE</SelectItem>
+                  <SelectItem value="PERMISSION_CHANGE" className="rounded-lg text-xs">PERMISSION_CHANGE</SelectItem>
+                  <SelectItem value="EXPORT" className="rounded-lg text-xs">EXPORT</SelectItem>
+                  <SelectItem value="PRINT" className="rounded-lg text-xs">PRINT</SelectItem>
+                  <SelectItem value="PAYMENT" className="rounded-lg text-xs">PAYMENT</SelectItem>
+                  <SelectItem value="INVITE" className="rounded-lg text-xs">INVITE</SelectItem>
+                  <SelectItem value="STATUS_CHANGE" className="rounded-lg text-xs">STATUS_CHANGE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {isLoadingLogs ? (
             <div className="space-y-2.5">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="h-14 bg-muted/40 rounded-2xl animate-pulse" />
               ))}
             </div>
-          ) : logs.length === 0 ? (
-            <div className="p-8 text-center border border-border bg-muted/20 rounded-2xl">
-              <p className="text-xs text-muted-foreground">No activity logged yet.</p>
+          ) : filteredLogs.length === 0 ? (
+            <div className="p-10 text-center border border-border bg-muted/20 rounded-2xl space-y-2">
+              <Activity className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+              <p className="text-xs font-semibold text-foreground">No audit logs found</p>
+              <p className="text-[11px] text-muted-foreground">
+                {auditSearchQuery || auditActionFilter !== "ALL"
+                  ? "Try adjusting your search query or action filter."
+                  : "No security activity events recorded yet."}
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
-              {logs.map((log: any) => {
+              {filteredLogs.map((log: any) => {
                 const userName = log.profiles?.display_name || log.details?._user_name || null;
                 const actionColor = ACTION_COLORS[log.action] || "bg-muted text-foreground border border-border";
                 const description = describeLog(log);
                 return (
                   <div
                     key={log.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-2xl border border-border/70 bg-card hover:bg-muted/30 transition-all"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border border-border/70 bg-card hover:bg-muted/30 transition-all"
                   >
-                    <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary">
-                      {userName ? userName.charAt(0).toUpperCase() : "?"}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                        <span className="font-semibold text-xs text-foreground">
-                          {userName || <span className="italic text-muted-foreground">System</span>}
-                        </span>
-                        <span className={`inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${actionColor}`}>
-                          {log.action}
-                        </span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="shrink-0 h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-xs text-primary">
+                        {userName ? userName.charAt(0).toUpperCase() : "?"}
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{description}</p>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                          <span className="font-semibold text-xs text-foreground">
+                            {userName || <span className="italic text-muted-foreground">System</span>}
+                          </span>
+                          <span className={`inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${actionColor}`}>
+                            {log.action}
+                          </span>
+                          {log.entity_type && (
+                            <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded font-mono border border-border">
+                              {log.entity_type}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{description}</p>
+                      </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <p className="text-[10px] font-mono text-muted-foreground">
+                    <div className="text-right shrink-0 sm:self-center">
+                      <p className="text-[11px] font-medium text-foreground">
                         {new Date(log.created_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}
+                      </p>
+                      <p className="text-[10px] font-mono text-muted-foreground">
+                        {new Date(log.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </div>
                   </div>
