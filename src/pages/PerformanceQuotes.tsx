@@ -194,8 +194,8 @@ export default function PerformanceQuotes() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["performance_quotes"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      logAction("CREATE", "Proforma Quote");
-      toast.success("Proforma quote created successfully. Please note it might take a moment to reflect across all views.");
+      logAction("CREATE", "Proforma Invoice");
+      toast.success("Proforma invoice created successfully. Please note it might take a moment to reflect across all views.");
       clearDraft();
       closeDialog();
     },
@@ -272,8 +272,8 @@ export default function PerformanceQuotes() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["performance_quotes"] });
-      logAction("UPDATE", "Proforma Quote", editingQuote?.id);
-      toast.success("Proforma quote updated successfully!");
+      logAction("UPDATE", "Proforma Invoice", editingQuote?.id);
+      toast.success("Proforma invoice updated successfully!");
       closeDialog();
     },
     onError: (error: any) => {
@@ -420,37 +420,50 @@ export default function PerformanceQuotes() {
 
       // Reuse the existing HTML generation logic but wrapped in a function or just copied here for now
       // (Ideally we should refactor getQuoteHTML but I'll implement it here for speed)
-      const html = `<html><head><title>Proforma Quote - ${quote.id.slice(0,8).toUpperCase()}</title>
+      const html = `<html><head><title>Proforma Invoice - ${quote.id.slice(0,8).toUpperCase()}</title>
       <style>
+        @page { margin: 0; size: A4; }
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-        body { font-family: 'Roboto', 'Arial', sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.3; }
-        .date-section { text-align: right; font-weight: 800; font-size: 13px; margin-bottom: 5px; text-transform: uppercase; }
-        .bill-to { margin-bottom: 10px; }
-        .bill-to p { margin: 1px 0; font-size: 13px; }
-        .main-container { position: relative; padding: 5px 20px; min-height: 600px; }
+        body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20mm; width: 210mm; min-height: 297mm; margin: 0 auto; box-sizing: border-box; color: #1a1a1a; line-height: 1.3; background: white; }
+        .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; pb: 4px; }
+        .bill-to { margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .bill-to p { margin: 2px 0; font-size: 12px; }
+        .main-container { position: relative; min-height: 500px; }
         .content-wrapper { position: relative; z-index: 1; }
-        .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 20px; margin-bottom: 10px; color: #1E3A8A; text-transform: uppercase; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        th, td { border: 1px solid #475569; padding: 8px 10px; text-align: left; font-size: 13px; font-weight: 600; }
-        th { text-transform: uppercase; }
-        .total-row td { border-top: 3px solid #1e293b; font-weight: 900; font-size: 16px; }
-        .amount-words { font-weight: 900; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
-        .notes-box { font-size: 12px; color: #475569; background: transparent; padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 18px; margin-bottom: 12px; color: #0f172a; text-transform: uppercase; letter-spacing: 2px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; }
+        th { background: #f1f5f9; text-transform: uppercase; font-weight: 800; font-size: 11px; }
+        .total-row td { border-top: 3px solid #1e293b; font-weight: 900; font-size: 15px; }
+        .amount-words { font-weight: 800; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .notes-box { font-size: 12px; color: #334155; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+        .field-row { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+        .field-label { font-weight: 800; color: #475569; min-width: 140px; white-space: nowrap; }
+        .field-value { font-weight: 600; color: #0f172a; flex: 1; }
       </style></head><body>
-      ${getPrintHeaderHTML()}
-      <div class="date-section">DATE: ${new Date(quote.quote_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}<br/>QUOTE NO: PQ-${quote.id.slice(0,8).toUpperCase()}</div>
+      ${getPrintHeader()}
+      <div class="date-section">DATE: ${new Date(quote.quote_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} &nbsp;|&nbsp; INVOICE NO: PI-${quote.id.slice(0,8).toUpperCase()}</div>
+      
       <div class="bill-to">
-        <p style="font-weight: 900;">PREPARED FOR:</p>
-        <p><strong>${quote.customers?.name || "—"}</strong></p>
-        ${quote.customers?.phone ? `<p>Tel: ${quote.customers.phone}</p>` : ''}
+        <p style="font-weight: 900; font-size: 11px; color: #475569; text-transform: uppercase; margin-bottom: 4px;">PREPARED FOR:</p>
+        <div class="field-row">
+          <span class="field-label">Customer Name:</span>
+          <span class="field-value">${quote.customers?.name || "—"}</span>
+        </div>
+        ${quote.customers?.phone ? `
+        <div class="field-row">
+          <span class="field-label">Contact Phone:</span>
+          <span class="field-value">${quote.customers.phone}</span>
+        </div>` : ''}
       </div>
+
       <div class="main-container">
-        ${getPrintWatermarkHTML()}
+        ${getPrintWatermark()}
         <div class="content-wrapper">
-          <h2 class="bill-title">PROFORMA QUOTE</h2>
+          <h2 class="bill-title">PROFORMA INVOICE</h2>
           <table>
             <thead>
-              <tr><th style="width: 40px;">#</th><th>VEHICLE DESCRIPTION</th><th style="width: 60px;">QTY</th><th style="width: 120px;">UNIT PRICE</th><th style="width: 120px; text-align: right;">AMOUNT (₦)</th></tr>
+              <tr><th style="width: 40px; text-align: center;">#</th><th>VEHICLE DESCRIPTION</th><th style="width: 60px; text-align: center;">QTY</th><th style="width: 120px; text-align: right;">UNIT PRICE</th><th style="width: 130px; text-align: right;">AMOUNT (₦)</th></tr>
             </thead>
             <tbody>
               ${quote.performance_quote_items?.map((item: any, i: number) => {
@@ -459,20 +472,20 @@ export default function PerformanceQuotes() {
                   : (`${item.vehicles?.year || ''} ${item.vehicles?.make || ''} ${item.vehicles?.model || ''} ${item.vehicles?.trim || ''}`).trim();
                 return `
                 <tr>
-                  <td>${i+1}.</td>
+                  <td style="text-align: center;">${i+1}.</td>
                   <td>${vehicleDesc.toUpperCase()}</td>
                   <td style="text-align: center;">${item.quantity}</td>
-                  <td>₦${Number(item.base_price).toLocaleString()}</td>
-                  <td style="text-align: right;">₦${(Number(item.base_price) * Number(item.quantity)).toLocaleString()}</td>
+                  <td style="text-align: right;">₦${Number(item.base_price).toLocaleString()}</td>
+                  <td style="text-align: right; font-weight: 700;">₦${(Number(item.base_price) * Number(item.quantity)).toLocaleString()}</td>
                 </tr>
               `}).join('')}
             </tbody>
           </table>
 
           ${quote.performance_quote_items?.some((item: any) => item.has_duty) ? `
-          <h3 style="margin-top: 20px; font-weight: 800; text-transform: uppercase; font-size: 14px;">CUSTOM DUTY</h3>
+          <h3 style="margin-top: 16px; margin-bottom: 6px; font-weight: 900; text-transform: uppercase; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; color: #0f172a;">CUSTOM DUTY</h3>
           <table>
-            <thead><tr><th style="width: 40px;">#</th><th>DESCRIPTION</th><th style="width: 60px;">QTY</th><th style="width: 120px;">UNIT PRICE</th><th style="width: 120px; text-align: right;">AMOUNT (₦)</th></tr></thead>
+            <thead><tr><th style="width: 40px; text-align: center;">#</th><th>DESCRIPTION</th><th style="width: 60px; text-align: center;">QTY</th><th style="width: 120px; text-align: right;">UNIT PRICE</th><th style="width: 130px; text-align: right;">AMOUNT (₦)</th></tr></thead>
             <tbody>
               ${quote.performance_quote_items?.filter((item: any) => item.has_duty).map((item: any, i: number) => {
                 const dutyDesc = item.vehicle_description
@@ -480,33 +493,33 @@ export default function PerformanceQuotes() {
                   : (`${item.vehicles?.make || ''} ${item.vehicles?.model || ''}`).trim();
                 return `
                 <tr>
-                  <td>${i+1}.</td>
+                  <td style="text-align: center;">${i+1}.</td>
                   <td>CUSTOM DUTY - ${dutyDesc.toUpperCase()}</td>
                   <td style="text-align: center;">${item.quantity}</td>
-                  <td>₦${Number(item.duty_price).toLocaleString()}</td>
-                  <td style="text-align: right;">₦${(Number(item.duty_price) * Number(item.quantity)).toLocaleString()}</td>
+                  <td style="text-align: right;">₦${Number(item.duty_price).toLocaleString()}</td>
+                  <td style="text-align: right; font-weight: 700;">₦${(Number(item.duty_price) * Number(item.quantity)).toLocaleString()}</td>
                 </tr>
               `}).join('')}
             </tbody>
           </table>` : ''}
 
-          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 20px; border-top: 2px solid #1e293b; padding-top: 10px;">
-            <div style="font-weight: 900; font-size: 16px; margin-right: 40px;">GRAND TOTAL</div>
+          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 16px; border-top: 2px solid #1e293b; padding-top: 8px; margin-bottom: 12px;">
+            <div style="font-weight: 900; font-size: 15px; margin-right: 40px;">GRAND TOTAL:</div>
             <div style="font-weight: 900; font-size: 16px; text-align: right; white-space: nowrap;">₦${(Number(quote.total_amount) || 0).toLocaleString()}</div>
           </div>
-          <div class="amount-words">AMOUNT IN WORDS: ${numberToWords(Number(quote.total_amount) || 0)}</div>
+          <div class="amount-words"><strong>AMOUNT IN WORDS:</strong> ${numberToWords(Number(quote.total_amount) || 0)}</div>
           ${(quote.bank_name || quote.account_number || quote.account_name) ? `
-          <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1.5px solid #94a3b8; border-radius: 8px; background: transparent;">
-            <div style="font-weight: 900; font-size: 13px; color: #1E3A8A; text-transform: uppercase; margin-bottom: 6px;">BANK PAYMENT DETAILS:</div>
-            ${quote.bank_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Bank Name:</strong> <strong>${quote.bank_name}</strong></div>` : ''}
-            ${quote.account_number ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Number:</strong> <strong>${quote.account_number}</strong></div>` : ''}
-            ${quote.account_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Name:</strong> <strong>${quote.account_name}</strong></div>` : ''}
+          <div style="margin-top: 12px; margin-bottom: 12px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc;">
+            <div style="font-weight: 900; font-size: 11px; color: #0f172a; text-transform: uppercase; margin-bottom: 6px; background: #e2e8f0; padding: 3px 8px; border-radius: 4px;">BANK PAYMENT DETAILS:</div>
+            ${quote.bank_name ? `<div class="field-row"><span class="field-label">Bank Name:</span><span class="field-value">${quote.bank_name}</span></div>` : ''}
+            ${quote.account_number ? `<div class="field-row"><span class="field-label">Account Number:</span><span class="field-value">${quote.account_number}</span></div>` : ''}
+            ${quote.account_name ? `<div class="field-row"><span class="field-label">Account Name:</span><span class="field-value">${quote.account_name}</span></div>` : ''}
           </div>
           ` : ''}
-          ${quote.notes ? `<div class="notes-box"><strong>NOTES:</strong><br/>${quote.notes}</div>` : ''}
+          ${quote.notes ? `<div class="notes-box"><strong>NOTES / TERMS:</strong><br/>${quote.notes}</div>` : ''}
         </div>
       </div>
-      ${getPrintFooterHTML()}
+      ${getPrintFooter()}
       </body></html>`;
 
       const iframe = document.createElement('iframe');
@@ -542,18 +555,18 @@ export default function PerformanceQuotes() {
         await supabase.from("performance_quotes" as any).update({ quote_url: publicUrl }).eq("id", quote.id);
 
         if (quote.customers?.email) {
-          const subject = `Proforma Quote - Lamido Cars`;
-          const body = `Hello ${quote.customers.name},\n\nPlease find your proforma quote attached.\n\nDownload here: ${publicUrl}\n\nThank you!`;
+          const subject = `Proforma Invoice - Lamido Cars`;
+          const body = `Hello ${quote.customers.name},\n\nPlease find your proforma invoice attached.\n\nDownload here: ${publicUrl}\n\nThank you!`;
           window.location.href = `mailto:${quote.customers.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          toast.success("Quote generated and email ready!", { id: "quote-dl" });
+          toast.success("Invoice generated and email ready!", { id: "quote-dl" });
         } else {
           toast.error("Customer email not found.", { id: "quote-dl" });
         }
-        logAction("EXPORT", "Proforma Quote", quote.id, { customer: quote.customers?.name, format: "PDF", method: "Email" });
+        logAction("EXPORT", "Proforma Invoice", quote.id, { customer: quote.customers?.name, format: "PDF", method: "Email" });
       } else {
         pdf.save(`${filename}.pdf`);
-        logAction("EXPORT", "Proforma Quote", quote.id, { customer: quote.customers?.name, format: "PDF", method: "Download" });
-        toast.success("Quote downloaded!", { id: "quote-dl" });
+        logAction("EXPORT", "Proforma Invoice", quote.id, { customer: quote.customers?.name, format: "PDF", method: "Download" });
+        toast.success("Invoice downloaded!", { id: "quote-dl" });
       }
     } catch (error) {
       console.error(error);
@@ -563,36 +576,28 @@ export default function PerformanceQuotes() {
 
   const handlePrint = (quote: any) => {
     toast.info("Preparing quote document...");
-    logAction("PRINT", "Proforma Quote", quote.id, { customer: quote.customers?.name });
-    const html = `<html><head><title>Proforma Quote - ${quote.id.slice(0,8).toUpperCase()}</title>
+    logAction("PRINT", "Proforma Invoice", quote.id, { customer: quote.customers?.name });
+    const html = `<html><head><title>Proforma Invoice - ${quote.id.slice(0,8).toUpperCase()}</title>
     <style>
+      @page { margin: 0; size: A4; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 10px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.2; }
-      .date-section { text-align: right; font-weight: 800; font-size: 13px; margin-bottom: 5px; text-transform: uppercase; }
-      .bill-to { margin-bottom: 10px; }
-      .bill-to p { margin: 1px 0; font-size: 13px; }
-      .main-container {
-        background-color: transparent;
-        border-radius: 40px;
-        padding: 0px 20px;
-        position: relative;
-        border: none;
-        min-height: 600px;
-      }
+      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20mm; width: 210mm; min-height: 297mm; margin: 0 auto; box-sizing: border-box; color: #1a1a1a; line-height: 1.3; background: white; }
+      .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+      .bill-to { margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+      .bill-to p { margin: 2px 0; font-size: 12px; }
+      .main-container { position: relative; min-height: 500px; }
       .content-wrapper { position: relative; z-index: 1; }
-      .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 18px; margin-bottom: 10px; color: #1E3A8A; text-transform: uppercase; }
-      
-      table { width: 100%; border-collapse: collapse; background: transparent; margin-bottom: 10px; }
-      th, td { border: 1px solid #475569; padding: 8px 10px; text-align: left; font-size: 13px; font-weight: 600; }
-      th { background: transparent; text-transform: uppercase; }
+      .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 18px; margin-bottom: 12px; color: #0f172a; text-transform: uppercase; letter-spacing: 2px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+      th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; }
+      th { background: #f1f5f9; text-transform: uppercase; font-weight: 800; font-size: 11px; }
       td:first-child { width: 40px; text-align: center; }
-      
-      .total-row td { border-top: 3px solid #1e293b; font-weight: 900; font-size: 16px; }
-      .amount-words { font-weight: 900; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; }
-      .bank-details { margin-top: 10px; font-size: 12px; }
-      .bank-details h4 { margin: 0 0 3px 0; font-weight: 900; text-transform: uppercase; }
-      .bank-details p { margin: 1px 0; font-weight: 500; }
-      .notes-box { font-size: 12px; color: #475569; background: transparent; padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+      .total-row td { border-top: 3px solid #1e293b; font-weight: 900; font-size: 15px; }
+      .amount-words { font-weight: 800; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+      .notes-box { font-size: 12px; color: #334155; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+      .field-row { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+      .field-label { font-weight: 800; color: #475569; min-width: 140px; white-space: nowrap; }
+      .field-value { font-weight: 600; color: #0f172a; flex: 1; }
     </style></head><body>
     ${getPrintHeaderHTML()}
     
@@ -607,7 +612,7 @@ export default function PerformanceQuotes() {
     <div class="main-container">
       ${getPrintWatermarkHTML()}
       <div class="content-wrapper">
-        <h2 class="bill-title">PROFORMA QUOTE</h2>
+        <h2 class="bill-title">PROFORMA INVOICE</h2>
         
         <table>
           <thead>
@@ -699,11 +704,11 @@ export default function PerformanceQuotes() {
         </div>
 
         ${(quote.bank_name || quote.account_number || quote.account_name) ? `
-        <div style="margin-top: 15px; margin-bottom: 12px; padding: 10px 14px; border: 1.5px solid #94a3b8; border-radius: 8px; background: transparent;">
-          <div style="font-weight: 900; font-size: 13px; color: #1E3A8A; text-transform: uppercase; margin-bottom: 6px;">BANK PAYMENT DETAILS:</div>
-          ${quote.bank_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Bank Name:</strong> <strong>${quote.bank_name}</strong></div>` : ''}
-          ${quote.account_number ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Number:</strong> <strong>${quote.account_number}</strong></div>` : ''}
-          ${quote.account_name ? `<div style="font-size: 12px; font-weight: 800; color: #0f172a; margin: 3px 0;"><strong>Account Name:</strong> <strong>${quote.account_name}</strong></div>` : ''}
+        <div style="margin-top: 12px; margin-bottom: 12px; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc;">
+          <div style="font-weight: 900; font-size: 11px; color: #0f172a; text-transform: uppercase; margin-bottom: 6px; background: #e2e8f0; padding: 3px 8px; border-radius: 4px;">BANK PAYMENT DETAILS:</div>
+          ${quote.bank_name ? `<div class="field-row"><span class="field-label">Bank Name:</span><span class="field-value">${quote.bank_name}</span></div>` : ''}
+          ${quote.account_number ? `<div class="field-row"><span class="field-label">Account Number:</span><span class="field-value">${quote.account_number}</span></div>` : ''}
+          ${quote.account_name ? `<div class="field-row"><span class="field-label">Account Name:</span><span class="field-value">${quote.account_name}</span></div>` : ''}
         </div>
         ` : ''}
 
@@ -771,10 +776,10 @@ export default function PerformanceQuotes() {
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-500/60">Sales & Proposals</span>
           </div>
           <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground">
-            Proforma Quotes
+            Proforma Invoices
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Create and manage multi-vehicle proforma quotes with dynamic duty pricing.
+            Create and manage multi-vehicle proforma invoices with dynamic duty pricing.
           </p>
         </div>
         {canCreate(role, "performance-quotes", permissions) && (
@@ -994,9 +999,9 @@ export default function PerformanceQuotes() {
               </Button>
               <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
                 {editingQuote ? (
-                  <><Pencil className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" /> Edit Proforma Quote</>
+                  <><Pencil className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" /> Edit Proforma Invoice</>
                 ) : (
-                  <><FileSignature className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" /> Create Proforma Quote</>
+                  <><FileSignature className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-500" /> Create Proforma Invoice</>
                 )}
               </DialogTitle>
             </div>
@@ -1241,7 +1246,7 @@ export default function PerformanceQuotes() {
                 <h4 className="font-semibold text-sm text-foreground">Bank Account Details (Optional)</h4>
               </div>
               <p className="text-xs text-muted-foreground">
-                Enter bank details to display on the printed proforma quote for customer payments.
+                Enter bank details to display on the printed proforma invoice for customer payments.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
                 <div className="space-y-1">

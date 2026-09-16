@@ -96,6 +96,7 @@ export function printHTMLDocument(title: string, htmlBody: string) {
         .badge-warn { background: #fef3c7; color: #92400e; }
         .badge-info { background: #e0f2fe; color: #075985; }
         @media print {
+          @page { margin: 0; size: auto; }
           body { padding: 0; }
           .page-break { page-break-before: always; }
         }

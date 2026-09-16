@@ -23,6 +23,7 @@ const Customers = lazy(() => import("./pages/Customers"));
 const Sales = lazy(() => import("./pages/Sales"));
 const Inquiries = lazy(() => import("./pages/Inquiries"));
 const AuthorityToSell = lazy(() => import("./pages/AuthorityToSell"));
+const SalesAgreement = lazy(() => import("./pages/SalesAgreement"));
 const PerformanceQuotes = lazy(() => import("./pages/PerformanceQuotes"));
 const Expenses = lazy(() => import("./pages/Expenses"));
 const AdvancedReport = lazy(() => import("./pages/AdvancedReport"));
@@ -101,6 +102,7 @@ function AppRoutes() {
                 <Route path="/sales"             element={<RoleGuard page="sales"><Sales /></RoleGuard>} />
                 <Route path="/inquiries"         element={<RoleGuard page="inquiries"><Inquiries /></RoleGuard>} />
                 <Route path="/authority-to-sell" element={<RoleGuard page="authority-to-sell"><AuthorityToSell /></RoleGuard>} />
+                <Route path="/sales-agreement"    element={<RoleGuard page="authority-to-sell"><SalesAgreement /></RoleGuard>} />
                 <Route path="/performance-quotes" element={<RoleGuard page="performance-quotes"><PerformanceQuotes /></RoleGuard>} />
                 <Route path="/expenses"          element={<RoleGuard page="expenses"><Expenses /></RoleGuard>} />
                 <Route path="/report"            element={<AdvancedReport />} />

@@ -829,6 +829,7 @@ export default function RepairsMaintenance() {
 
     return `<html><head><title>Service Bill - ${vehicleLabel}</title>
     <style>
+      @page { margin: 0; size: auto; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
       body { font-family: 'Roboto', 'Arial', sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.3; }
       .date-section { text-align: right; font-weight: 800; font-size: 13px; margin-bottom: 15px; text-transform: uppercase; }
@@ -951,6 +952,7 @@ export default function RepairsMaintenance() {
     const cust = customers.find(c => c.id === r.customer_id);
     return `<html><head><title>Job Card - ${r.job_card_no || r.id}</title>
     <style>
+      @page { margin: 0; size: auto; }
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
       body { font-family: 'Inter', sans-serif; padding: 10px; max-width: 850px; margin: 0 auto; color: #1a1a1a; line-height: 1.3; position: relative; }
       .job-header { text-align: center; font-weight: 800; font-size: 20px; text-transform: uppercase; margin: 10px 0; letter-spacing: 2px; }
@@ -1165,6 +1167,7 @@ export default function RepairsMaintenance() {
 
     const html = `<html><head><title>${ordinalLabel} - ${repair.job_card_no}</title>
     <style>
+      @page { margin: 0; size: auto; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
       body { font-family: 'Roboto', 'Arial', sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.3; }
       .date-section { text-align: right; font-weight: 800; font-size: 13px; margin-bottom: 15px; text-transform: uppercase; }

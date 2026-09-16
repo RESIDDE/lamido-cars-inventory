@@ -19,7 +19,7 @@ export const ALL_PAGES: { key: PageKey; label: string; path: string }[] = [
   { key: "sales",              label: "Sales",            path: "/sales" },
   { key: "inquiries",          label: "Inquiries",        path: "/inquiries" },
   { key: "authority-to-sell",  label: "Auth. Form",       path: "/authority-to-sell" },
-  { key: "performance-quotes", label: "Proforma Quotes",  path: "/performance-quotes" },
+  { key: "performance-quotes", label: "Proforma Invoices", path: "/performance-quotes" },
   { key: "expenses",           label: "Company Expenses", path: "/expenses" },
 ];
 

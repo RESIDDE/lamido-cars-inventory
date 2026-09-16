@@ -269,10 +269,10 @@ export default function AuthorityToSell() {
 
   // ── Helper ────────────────────────────────────────────────────────────────
   const Field = ({ label, value }: { label: string; value: string }) => (
-    <div className="flex items-baseline gap-2 print:gap-1.5 py-1 print:py-[2px] border-b border-gray-200">
-      <span className="font-bold text-sm text-gray-800 whitespace-nowrap">{label}:</span>
-      <span className="flex-1 text-sm text-gray-900 font-medium">
-        {value || <span className="text-transparent select-none">{"_".repeat(30)}</span>}
+    <div className="flex items-baseline gap-2 py-0.5 border-b border-gray-200 text-xs">
+      <span className="font-bold text-gray-700 whitespace-nowrap min-w-[150px]">{label}:</span>
+      <span className="text-gray-900 font-medium flex-1 break-words">
+        {value || <span className="text-transparent select-none">{"_".repeat(20)}</span>}
       </span>
     </div>
   );
@@ -330,16 +330,16 @@ export default function AuthorityToSell() {
           <PrintHeader />
 
           {/* Title */}
-          <div className="text-center my-2 print:my-1">
+          <div className="text-center my-3 print:my-2">
             <h1 className="text-lg print:text-base font-black text-black uppercase tracking-widest underline underline-offset-4">
               Authority to Sell Vehicle
             </h1>
           </div>
 
           {/* Date */}
-          <div className="flex items-baseline gap-2 mb-2 print:mb-1.5 border-b border-gray-300 pb-0.5">
-            <span className="font-bold text-[13px]">Date:</span>
-            <span className="text-[13px] font-medium flex-1">
+          <div className="flex items-baseline gap-2 mb-3 print:mb-2 border-b border-gray-300 pb-1">
+            <span className="font-bold text-[13px] text-gray-800">Date:</span>
+            <span className="text-[13px] font-medium flex-1 text-gray-900">
               {previewData.agreementDate
                 ? new Date(previewData.agreementDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
                 : ""}
@@ -347,8 +347,8 @@ export default function AuthorityToSell() {
           </div>
 
           {/* Owner's Information */}
-          <section className="mb-2 print:mb-1.5">
-            <h2 className="font-black text-xs uppercase tracking-wide mb-0.5">Owner's Information</h2>
+          <section className="mb-3 print:mb-2">
+            <h2 className="font-black text-[11px] uppercase tracking-wide mb-1 bg-gray-100 px-2 py-0.5 rounded text-gray-900">Owner's Information</h2>
             <div className="space-y-0.5">
               <Field label="Full Name" value={previewData.customerName} />
               <Field label="Address" value={previewData.customerAddress} />
@@ -358,10 +358,10 @@ export default function AuthorityToSell() {
           </section>
 
           {/* Vehicle Information */}
-          <section className="mb-2 print:mb-1.5">
-            <h2 className="font-black text-xs uppercase tracking-wide mb-0.5">Vehicle Information</h2>
-            <div className="space-y-0.5">
-              <Field label="Make/Brand" value={previewData.vehicleMake} />
+          <section className="mb-3 print:mb-2">
+            <h2 className="font-black text-[11px] uppercase tracking-wide mb-1 bg-gray-100 px-2 py-0.5 rounded text-gray-900">Vehicle Information</h2>
+            <div className="grid grid-cols-2 gap-x-6 print:gap-x-4">
+              <Field label="Make / Brand" value={previewData.vehicleMake} />
               <Field label="Year Model" value={previewData.vehicleYearModel} />
               <Field label="Color" value={previewData.vehicleColor} />
               <Field label="Engine Number" value={previewData.vehicleEngineNumber} />
@@ -370,11 +370,11 @@ export default function AuthorityToSell() {
           </section>
 
           {/* Authority Given */}
-          <section className="mb-2 print:mb-1.5">
-            <h2 className="font-black text-xs uppercase tracking-wide mb-1">Authority Given</h2>
-            <p className="text-[13px] leading-[1.8] print:leading-[1.3] text-gray-800">
+          <section className="mb-3 print:mb-2">
+            <h2 className="font-black text-[11px] uppercase tracking-wide mb-1 bg-gray-100 px-2 py-0.5 rounded text-gray-900">Authority Given</h2>
+            <p className="text-[12px] leading-[1.75] print:leading-[1.4] text-gray-800 text-justify">
               I,{" "}
-              <span className="inline-block min-w-[200px] border-b border-gray-800 text-center font-bold px-2">
+              <span className="inline-block min-w-[180px] border-b border-gray-800 text-center font-bold px-2">
                 {previewData.customerName || ""}
               </span>
               {previewData.ownerRepName && (
@@ -386,12 +386,12 @@ export default function AuthorityToSell() {
                   </span>
                   )
                 </>
-              )}, hereby authorize the above-named person to sell the vehicle described above on my behalf. This includes:
-              Talking to potential buyers, accepting payment, signing necessary sale documents, Releasing the vehicle and its documents.
+              )}, hereby authorize <strong>Lamido Cars Ltd.</strong> to sell the vehicle described above on my behalf. This authority includes:
+              negotiating with potential buyers, accepting payment, signing necessary sale documents, and releasing the vehicle and its title documents.
             </p>
             <div className="flex items-baseline gap-2 mt-2 print:mt-1 border-b border-gray-300 pb-0.5">
-              <span className="font-bold text-[13px] whitespace-nowrap">This authority is valid until:</span>
-              <span className="text-[13px] font-medium flex-1">
+              <span className="font-bold text-xs text-gray-800 whitespace-nowrap">This authority is valid until:</span>
+              <span className="text-xs font-medium flex-1 text-gray-900">
                 {previewData.validUntil
                   ? new Date(previewData.validUntil).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
                   : ""}
@@ -399,19 +399,19 @@ export default function AuthorityToSell() {
             </div>
           </section>
 
-          {/* Note (Only rendered if present to save layout space) */}
+          {/* Note */}
           {previewData.note && (
-            <section className="mb-2 print:mb-1.5">
-              <h2 className="font-black text-xs uppercase tracking-wide mb-0.5">Note:</h2>
-              <p className="text-[13px] text-gray-800 leading-tight min-h-[20px] border-b border-gray-300 pb-1">
+            <section className="mb-3 print:mb-2">
+              <h2 className="font-black text-[11px] uppercase tracking-wide mb-0.5 text-gray-900">Note:</h2>
+              <p className="text-[12px] text-gray-800 leading-tight min-h-[20px] border-b border-gray-300 pb-1">
                 {previewData.note}
               </p>
             </section>
           )}
 
           {/* Signatures */}
-          <section>
-            <h2 className="font-black text-xs uppercase tracking-wide mb-2">Signatures</h2>
+          <section className="mt-3 print:mt-2">
+            <h2 className="font-black text-[11px] uppercase tracking-wide mb-2 text-gray-900">Signatures</h2>
             <div className="grid grid-cols-2 gap-12 print:gap-8">
               {/* Owner / Representative */}
               <div>

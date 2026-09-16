@@ -529,6 +529,7 @@ export default function Sales() {
 
     const html = `<html><head><title>${paymentLabel} - ${sale.id.slice(0, 8).toUpperCase()}</title>
     <style>
+      @page { margin: 0; size: auto; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
       body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.1; }
       .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; padding: 0 20px; }
@@ -650,6 +651,7 @@ export default function Sales() {
     logAction("PRINT", "Sales", sale.id, { vehicle: sale.sale_vehicles?.[0]?.vehicle ? `${sale.sale_vehicles[0].vehicle.year} ${sale.sale_vehicles[0].vehicle.make} ${sale.sale_vehicles[0].vehicle.model}` : "Vehicle" });
     const html = `<html><head><title>Receipt - ${sale.id.slice(0, 8).toUpperCase()}</title>
     <style>
+      @page { margin: 0; size: auto; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
       body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.1; }
       .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; padding: 0 20px; }
@@ -709,6 +711,7 @@ export default function Sales() {
 
       const html = `<!DOCTYPE html><html><head><title>Receipt - ${sale.id}</title>
         <style>
+          @page { margin: 0; size: auto; }
           @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
           body { font-family: 'Roboto', 'Arial', sans-serif; padding: 40px; width: 750px; background: #fff; color: #1a1a1a; line-height: 1.4; }
           .date-section { text-align: right; font-weight: 800; font-size: 14px; margin-bottom: 20px; text-transform: uppercase; padding: 0 30px; }
@@ -825,6 +828,7 @@ export default function Sales() {
     
     const html = `<html><head><title>Bulk Sales Receipts</title>
     <style>
+      @page { margin: 0; size: auto; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
       body { font-family: 'Roboto', 'Arial', sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.3; }
       .date-section { text-align: right; font-weight: 800; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; }

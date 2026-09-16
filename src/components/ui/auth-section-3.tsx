@@ -273,7 +273,7 @@ export default function AuthSectionThree({ onSuccess }: AuthSectionThreeProps) {
                 }}
                 className="mt-7 text-2xl font-light leading-tight tracking-[-0.035em] text-white/90 sm:text-3xl lg:text-[34px]"
               >
-                “Manage fleet inventory, sales records, customer proforma quotes & repairs with extreme precision.”
+                “Manage fleet inventory, sales records, customer proforma invoices & repairs with extreme precision.”
               </motion.blockquote>
             </div>
 

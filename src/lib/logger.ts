@@ -75,7 +75,7 @@ export function describeLog(log: any): string {
       if (entity === "Inspection") return `${name} recorded inspection for ${d.vehicle ?? ""}`;
       if (entity === "Repair") return `${name} opened repair job — ${d.vehicle ?? ""}`;
       if (entity === "Authority to Sell") return `${name} created Authority to Sell for ${d.customer ?? ""}`;
-      if (entity === "Proforma Quote") return `${name} created proforma quote`;
+      if (entity === "Proforma Quote" || entity === "Proforma Invoice") return `${name} created proforma invoice`;
       return `${name} created a ${entity.toLowerCase()} record`;
 
     case "UPDATE":

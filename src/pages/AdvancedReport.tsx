@@ -928,9 +928,9 @@ export default function AdvancedReport() {
 
       {/* ── Documents & Quotes ─────────────────────────────────────────────────── */}
       <div>
-        <SectionHeader icon={FileText} title="Documents & Proforma Quotes" sub="Quote conversion and document activity" color="text-sky-400" />
+        <SectionHeader icon={FileText} title="Documents & Proforma Invoices" sub="Invoice conversion and document activity" color="text-sky-400" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KpiCard icon={FileSignature} label="Proforma Quotes" value={String(fQuotes.length)} color="text-sky-400" />
+          <KpiCard icon={FileSignature} label="Proforma Invoices" value={String(fQuotes.length)} color="text-sky-400" />
           <KpiCard icon={FileText} label="Quote → Sales" value={String(fSales.length)} color="text-emerald-500" />
           <KpiCard icon={ClipboardList} label="Inspections" value={String(inspections.length)} color="text-violet-500" />
           <KpiCard icon={ShieldCheck} label="Auth. Forms" value="—" color="text-amber-500" />

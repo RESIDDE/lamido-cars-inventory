@@ -164,12 +164,12 @@ const TEMPLATES = [
   },
   {
     id: "proforma-quote",
-    name: "Proforma Quote",
-    description: "Pricing quotation",
+    name: "Proforma Invoice",
+    description: "Pricing quotation & billing document",
     icon: FileText,
     color: "text-emerald-500 bg-emerald-500/10",
     content: `
-      <h1 style="text-align: center; color: #1e293b; margin-bottom: 4px;">PROFORMA QUOTE</h1>
+      <h1 style="text-align: center; color: #1e293b; margin-bottom: 4px;">PROFORMA INVOICE</h1>
       <p style="text-align: center; color: #64748b; margin-bottom: 24px;">Quote No: BT-PQ-${Math.floor(1000 + Math.random() * 9000)} | Date: ${new Date().toLocaleDateString()}</p>
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; border: none;">
         <tbody>

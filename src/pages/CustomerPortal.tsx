@@ -130,7 +130,7 @@ export default function CustomerPortal() {
             {/* Proforma Quotes */}
             {data.quotes && data.quotes.length > 0 && (
               <div className="space-y-4 pt-4">
-                <h4 className="font-bold flex items-center gap-2 text-lg"><Quote className="h-5 w-5 text-violet-500" /> Proforma Quotes</h4>
+                <h4 className="font-bold flex items-center gap-2 text-lg"><Quote className="h-5 w-5 text-violet-500" /> Proforma Invoices</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {data.quotes.map((q: any) => (
                     <div key={q.id} className="glass-panel p-5 rounded-2xl border border-white/5 flex justify-between items-center group">

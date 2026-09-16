@@ -28,10 +28,11 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { title: "Lamido Vehicles",  url: "/vehicles",           pageKey: "vehicles",           icon: Car },
   { title: "Customers",        url: "/customers",          pageKey: "customers",          icon: Users },
   { title: "Sales",            url: "/sales",              pageKey: "sales",              icon: (props) => <NairaIcon {...props} /> },
-  { title: "Proforma Quotes",  url: "/performance-quotes", pageKey: "performance-quotes", icon: FileSignature },
+  { title: "Proforma Invoices", url: "/performance-quotes", pageKey: "performance-quotes", icon: FileSignature },
   { title: "Company Expenses", url: "/expenses",           pageKey: "expenses",           icon: Receipt },
   { title: "Inquiries",        url: "/inquiries",          pageKey: "inquiries",          icon: MessageSquare },
   { title: "Auth. Form",       url: "/authority-to-sell",  pageKey: "authority-to-sell",  icon: FileSignature },
+  { title: "Sales Agreement",  url: "/sales-agreement",    pageKey: "authority-to-sell",  icon: FileText },
   { title: "Adv. Report",      url: "/report",             pageKey: "dashboard",          icon: BarChart3 },
 ];
 
@@ -44,6 +45,7 @@ const PREFETCH_MAP: Record<string, () => Promise<any>> = {
   "/expenses":           () => import("@/pages/Expenses"),
   "/inquiries":          () => import("@/pages/Inquiries"),
   "/authority-to-sell":  () => import("@/pages/AuthorityToSell"),
+  "/sales-agreement":    () => import("@/pages/SalesAgreement"),
   "/report":             () => import("@/pages/AdvancedReport"),
   "/settings":           () => import("@/pages/Settings"),
 };
