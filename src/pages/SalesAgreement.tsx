@@ -602,7 +602,7 @@ export default function SalesAgreement() {
               </div>
             </section>
 
-            <PrintFooter />
+            <PrintFooter showSignatures={false} />
           </div>
         </div>
       </div>

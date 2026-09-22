@@ -466,7 +466,7 @@ export default function AuthorityToSell() {
               </div>
             </div>
           </section>
-          <PrintFooter />
+          <PrintFooter showSignatures={false} />
         </div>
         </div>
       </div>
