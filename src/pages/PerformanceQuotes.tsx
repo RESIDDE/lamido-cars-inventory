@@ -72,14 +72,18 @@ export default function PerformanceQuotes() {
     bankName: "",
     accountNumber: "",
     accountName: "",
-    notes: ""
+    notes: "",
+    vat_percentage: ""
   };
 
   const [form, setForm, clearDraft] = useFormPersistence("performance_quote", emptyForm);
   const [vehicleSearch, setVehicleSearch] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [vehicleMode, setVehicleMode] = useState<"inventory" | "manual">("inventory");
-  const [manualVehicleForm, setManualVehicleForm] = useState({ make: "", model: "", year: "", vin: "", price: "" });
+  const [manualVehicleForm, setManualVehicleForm] = useState({ 
+    make: "", model: "", year: "", vin: "", price: "", 
+    condition: "Used", transmission: "Automatic", cylinders: "V6" 
+  });
   
   // Queries
   const { data: quotes = [], isLoading: loadingQuotes } = useQuery({
@@ -155,10 +159,12 @@ export default function PerformanceQuotes() {
       if (form.selectedVehicles.length === 0) throw new Error("Please select at least one vehicle");
 
       // Calculate total
-      const totalAmount = form.selectedVehicles.reduce((sum, v) => {
+      const subTotal = form.selectedVehicles.reduce((sum, v) => {
         const qty = v.quantity || 1;
         return sum + ((Number(v.base_price) || 0) * qty) + (v.has_duty ? ((Number(v.duty_price) || 0) * qty) : 0);
       }, 0);
+      const vatAmount = subTotal * ((Number(form.vat_percentage) || 0) / 100);
+      const totalAmount = subTotal + vatAmount;
 
       // Create Quote
       const response: any = await supabase
@@ -170,6 +176,8 @@ export default function PerformanceQuotes() {
           account_number: form.accountNumber.trim() || null,
           account_name: form.accountName.trim() || null,
           notes: form.notes.trim() || null,
+          vat_percentage: Number(form.vat_percentage) || 0,
+          vat_amount: vatAmount,
         })
         .select()
         .single();
@@ -231,10 +239,12 @@ export default function PerformanceQuotes() {
 
       if (form.selectedVehicles.length === 0) throw new Error("Please select at least one vehicle");
 
-      const totalAmount = form.selectedVehicles.reduce((sum, v) => {
+      const subTotal = form.selectedVehicles.reduce((sum, v) => {
         const qty = v.quantity || 1;
         return sum + ((Number(v.base_price) || 0) * qty) + (v.has_duty ? ((Number(v.duty_price) || 0) * qty) : 0);
       }, 0);
+      const vatAmount = subTotal * ((Number(form.vat_percentage) || 0) / 100);
+      const totalAmount = subTotal + vatAmount;
 
       // Update quote header
       const { error: updateErr } = await supabase
@@ -246,6 +256,8 @@ export default function PerformanceQuotes() {
           account_number: form.accountNumber.trim() || null,
           account_name: form.accountName.trim() || null,
           notes: form.notes.trim() || null,
+          vat_percentage: Number(form.vat_percentage) || 0,
+          vat_amount: vatAmount,
         })
         .eq("id", editingQuote.id);
       if (updateErr) throw updateErr;
@@ -324,12 +336,12 @@ export default function PerformanceQuotes() {
       accountNumber: quote.account_number || "",
       accountName: quote.account_name || "",
       notes: quote.notes || "",
+      vat_percentage: quote.vat_percentage || "",
     });
     setEditingQuote(quote);
     setVehicleSearch("");
     setVehicleMode("inventory");
-    setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "" });
-    setDialogOpen(true);
+    setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "", condition: "Used", transmission: "Automatic", cylinders: "V6" });
   };
 
   const closeDialog = () => {
@@ -338,13 +350,17 @@ export default function PerformanceQuotes() {
     setForm(emptyForm);
     setVehicleSearch("");
     setVehicleMode("inventory");
-    setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "" });
+    setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "", condition: "Used", transmission: "Automatic", cylinders: "V6" });
   };
 
   const handleAddManualVehicle = () => {
-    const { make, model, year, vin, price } = manualVehicleForm;
+    const { make, model, year, vin, price, condition, transmission, cylinders } = manualVehicleForm;
     if (!make.trim() || !model.trim()) return;
-    const desc = [year.trim(), make.trim(), model.trim(), vin.trim()].filter(Boolean).join(" ");
+    
+    let specs = [condition, transmission, cylinders].filter(Boolean).join(", ");
+    let baseDesc = [year.trim(), make.trim(), model.trim()].filter(Boolean).join(" ");
+    const desc = `${baseDesc} ${specs ? `(${specs.toUpperCase()})` : ""}${vin.trim() ? ` - VIN: ${vin.trim()}` : ""}`;
+    
     const tempId = `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setForm(prev => ({
       ...prev,
@@ -362,7 +378,7 @@ export default function PerformanceQuotes() {
         vehicleDescription: desc,
       }]
     }));
-    setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "" });
+    setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "", condition: "Used", transmission: "Automatic", cylinders: "V6" });
     setVehicleMode("inventory");
   };
 
@@ -503,7 +519,18 @@ export default function PerformanceQuotes() {
             </tbody>
           </table>` : ''}
 
-          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 16px; border-top: 2px solid #1e293b; padding-top: 8px; margin-bottom: 12px;">
+          ${Number(quote.vat_percentage) > 0 ? `
+          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 16px; padding-top: 8px;">
+            <div style="font-weight: 700; font-size: 14px; margin-right: 40px; color: #475569;">SUBTOTAL:</div>
+            <div style="font-weight: 700; font-size: 14px; text-align: right; white-space: nowrap;">₦${(Number(quote.total_amount) - Number(quote.vat_amount || 0)).toLocaleString()}</div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 4px;">
+            <div style="font-weight: 700; font-size: 14px; margin-right: 40px; color: #475569;">VAT (${quote.vat_percentage}%):</div>
+            <div style="font-weight: 700; font-size: 14px; text-align: right; white-space: nowrap;">₦${Number(quote.vat_amount || 0).toLocaleString()}</div>
+          </div>
+          ` : ''}
+
+          <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: ${Number(quote.vat_percentage) > 0 ? '8px' : '16px'}; border-top: 2px solid #1e293b; padding-top: 8px; margin-bottom: 12px;">
             <div style="font-weight: 900; font-size: 15px; margin-right: 40px;">GRAND TOTAL:</div>
             <div style="font-weight: 900; font-size: 16px; text-align: right; white-space: nowrap;">₦${(Number(quote.total_amount) || 0).toLocaleString()}</div>
           </div>
@@ -694,7 +721,18 @@ export default function PerformanceQuotes() {
         </table>
         ` : ''}
 
-        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 20px; border-top: 3px solid #1e293b; padding-top: 15px;">
+        ${Number(quote.vat_percentage) > 0 ? `
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 20px; padding-top: 5px;">
+          <div style="font-weight: 700; font-size: 16px; margin-right: 40px; color: #475569;">SUBTOTAL</div>
+          <div style="font-weight: 700; font-size: 16px; text-align: right; white-space: nowrap;">₦${(Number(quote.total_amount) - Number(quote.vat_amount || 0)).toLocaleString()}</div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 5px;">
+          <div style="font-weight: 700; font-size: 16px; margin-right: 40px; color: #475569;">VAT (${quote.vat_percentage}%)</div>
+          <div style="font-weight: 700; font-size: 16px; text-align: right; white-space: nowrap;">₦${Number(quote.vat_amount || 0).toLocaleString()}</div>
+        </div>
+        ` : ''}
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: ${Number(quote.vat_percentage) > 0 ? '10px' : '20px'}; border-top: 3px solid #1e293b; padding-top: 15px;">
           <div style="font-weight: 900; font-size: 18px; margin-right: 40px;">GRAND TOTAL</div>
           <div style="font-weight: 900; font-size: 18px; text-align: right; white-space: nowrap;">₦${(Number(quote.total_amount) || 0).toLocaleString()}</div>
         </div>
@@ -1149,12 +1187,50 @@ export default function PerformanceQuotes() {
                         onChange={e => setManualVehicleForm(p => ({...p, price: e.target.value}))}
                       />
                     </div>
-                    <div className="flex items-end">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Condition</Label>
+                      <Select value={manualVehicleForm.condition} onValueChange={v => setManualVehicleForm(p => ({...p, condition: v}))}>
+                        <SelectTrigger className="bg-background/50 border-white/10 h-10"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="New">New</SelectItem>
+                          <SelectItem value="Used">Used</SelectItem>
+                          <SelectItem value="Foreign Used">Foreign Used</SelectItem>
+                          <SelectItem value="Locally Used">Locally Used</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Transmission</Label>
+                      <Select value={manualVehicleForm.transmission} onValueChange={v => setManualVehicleForm(p => ({...p, transmission: v}))}>
+                        <SelectTrigger className="bg-background/50 border-white/10 h-10"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Automatic">Automatic</SelectItem>
+                          <SelectItem value="Manual">Manual</SelectItem>
+                          <SelectItem value="CVT">CVT</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Cylinders</Label>
+                      <Select value={manualVehicleForm.cylinders} onValueChange={v => setManualVehicleForm(p => ({...p, cylinders: v}))}>
+                        <SelectTrigger className="bg-background/50 border-white/10 h-10"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="V4">V4</SelectItem>
+                          <SelectItem value="V6">V6</SelectItem>
+                          <SelectItem value="V8">V8</SelectItem>
+                          <SelectItem value="V10">V10</SelectItem>
+                          <SelectItem value="V12">V12</SelectItem>
+                          <SelectItem value="Electric">Electric</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end col-span-2 md:col-span-3">
                       <Button
                         type="button"
                         onClick={handleAddManualVehicle}
                         disabled={!manualVehicleForm.make.trim() || !manualVehicleForm.model.trim()}
-                        className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white"
+                        className="w-full rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white h-10"
                       >
                         <PlusCircle className="h-4 w-4 mr-2" /> Add Vehicle
                       </Button>
@@ -1229,11 +1305,37 @@ export default function PerformanceQuotes() {
                   ))}
 
                   {/* Summary */}
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl flex justify-between items-center mt-6">
-                    <span className="font-bold text-lg text-emerald-500 uppercase tracking-wider">Grand Total Estimate</span>
-                    <span className="text-3xl font-black text-emerald-500">
-                      ₦{form.selectedVehicles.reduce((sum, v) => sum + ((Number(v.base_price) || 0) * (v.quantity || 1)) + (v.has_duty ? ((Number(v.duty_price) || 0) * (v.quantity || 1)) : 0), 0).toLocaleString()}
-                    </span>
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-bold text-emerald-600 uppercase">VAT (%)</Label>
+                        <Input 
+                          type="number" 
+                          min="0"
+                          step="0.1"
+                          value={form.vat_percentage} 
+                          onChange={e => setForm(p => ({...p, vat_percentage: e.target.value}))} 
+                          className="w-24 h-9 bg-background border-emerald-500/30"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-bold text-emerald-600 uppercase">Subtotal</Label>
+                        <div className="text-lg font-bold text-emerald-700">
+                          ₦{form.selectedVehicles.reduce((sum, v) => sum + ((Number(v.base_price) || 0) * (v.quantity || 1)) + (v.has_duty ? ((Number(v.duty_price) || 0) * (v.quantity || 1)) : 0), 0).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right w-full md:w-auto border-t border-emerald-500/20 pt-4 md:pt-0 md:border-none">
+                      <div className="font-bold text-lg text-emerald-500 uppercase tracking-wider mb-1">Grand Total Estimate</div>
+                      <div className="text-3xl font-black text-emerald-600">
+                        ₦{(() => {
+                          const subTotal = form.selectedVehicles.reduce((sum, v) => sum + ((Number(v.base_price) || 0) * (v.quantity || 1)) + (v.has_duty ? ((Number(v.duty_price) || 0) * (v.quantity || 1)) : 0), 0);
+                          const vatAmount = subTotal * ((Number(form.vat_percentage) || 0) / 100);
+                          return (subTotal + vatAmount).toLocaleString();
+                        })()}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
