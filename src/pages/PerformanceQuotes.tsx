@@ -40,6 +40,58 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download, Mail, ArrowLeft } from "lucide-react";
 
+const renderVehicleSpecHTML = (item: any) => {
+  const rawDesc = item.vehicle_description;
+  const v = item.vehicles;
+
+  let title = '';
+  let subLines: string[] = [];
+
+  if (rawDesc) {
+    if (rawDesc.includes('\n')) {
+      const lines = rawDesc.split('\n').map((l: string) => l.trim()).filter(Boolean);
+      title = lines[0];
+      subLines = lines.slice(1);
+    } else {
+      const cleanDesc = rawDesc.replace(/\s*\(([^)]+)\)/g, ' - $1');
+      const parts = cleanDesc.split(/\s+-\s+/).map((p: string) => p.trim()).filter(Boolean);
+      title = parts[0] || '';
+      parts.slice(1).forEach((part: string) => {
+        if (/^(MODEL|TRANSMISSION|VIN|ENGINE|CONDITION):/i.test(part)) {
+          subLines.push(part);
+        } else if (part.includes(',')) {
+          const commaParts = part.split(',').map(s => s.trim());
+          commaParts.forEach(s => {
+            const lower = s.toLowerCase();
+            if (lower.includes('auto') || lower.includes('manual') || lower.includes('cvt')) {
+              subLines.push(`Transmission: ${s}`);
+            } else if (/^v\d+/i.test(s) || lower.includes('electric')) {
+              subLines.push(`Engine: ${s}`);
+            } else if (/^\d{4}$/.test(s)) {
+              subLines.push(`Model: ${s}`);
+            } else {
+              subLines.push(`Condition: ${s}`);
+            }
+          });
+        } else {
+          subLines.push(part);
+        }
+      });
+    }
+  } else if (v) {
+    const condition = v.condition || 'Brand New';
+    title = `${condition} ${v.make || ''} ${v.model || ''} ${v.trim || ''}`.trim();
+    if (v.year) subLines.push(`Model: ${v.year}`);
+    if (v.transmission) subLines.push(`Transmission: ${v.transmission}`);
+    if (v.vin) subLines.push(`VIN: ${v.vin}`);
+  }
+
+  return `
+    <div style="font-weight: 700; font-size: 12px; color: #0f172a; text-transform: uppercase; margin-bottom: 2px;">${title}</div>
+    ${subLines.map((line: string) => `<div style="font-size: 11px; color: #475569; margin-top: 1px;">${line}</div>`).join('')}
+  `;
+};
+
 export default function PerformanceQuotes() {
   const { role } = useAuth();
   const { permissions } = usePermissions();
@@ -342,6 +394,7 @@ export default function PerformanceQuotes() {
     setVehicleSearch("");
     setVehicleMode("inventory");
     setManualVehicleForm({ make: "", model: "", year: "", vin: "", price: "", condition: "Used", transmission: "Automatic", cylinders: "V6" });
+    setDialogOpen(true);
   };
 
   const closeDialog = () => {
@@ -357,9 +410,14 @@ export default function PerformanceQuotes() {
     const { make, model, year, vin, price, condition, transmission, cylinders } = manualVehicleForm;
     if (!make.trim() || !model.trim()) return;
     
-    let specs = [condition, transmission, cylinders].filter(Boolean).join(", ");
-    let baseDesc = [year.trim(), make.trim(), model.trim()].filter(Boolean).join(" ");
-    const desc = `${baseDesc} ${specs ? `(${specs.toUpperCase()})` : ""}${vin.trim() ? ` - VIN: ${vin.trim()}` : ""}`;
+    const title = `${condition ? condition.trim() : 'Brand New'} ${make.trim()} ${model.trim()}`;
+    const lines: string[] = [title];
+    if (year.trim()) lines.push(`Model: ${year.trim()}`);
+    if (transmission.trim()) lines.push(`Transmission: ${transmission.trim()}`);
+    if (cylinders.trim()) lines.push(`Engine: ${cylinders.trim()}`);
+    if (vin.trim()) lines.push(`VIN: ${vin.trim()}`);
+
+    const desc = lines.join("\n");
     
     const tempId = `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setForm(prev => ({
@@ -457,7 +515,7 @@ export default function PerformanceQuotes() {
         .field-label { font-weight: 800; color: #475569; min-width: 140px; white-space: nowrap; }
         .field-value { font-weight: 600; color: #0f172a; flex: 1; }
       </style></head><body>
-      ${getPrintHeader()}
+      ${getPrintHeaderHTML()}
       <div class="date-section">DATE: ${new Date(quote.quote_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} &nbsp;|&nbsp; INVOICE NO: PI-${quote.id.slice(0,8).toUpperCase()}</div>
       
       <div class="bill-to">
@@ -474,46 +532,56 @@ export default function PerformanceQuotes() {
       </div>
 
       <div class="main-container">
-        ${getPrintWatermark()}
+        ${getPrintWatermarkHTML()}
         <div class="content-wrapper">
           <h2 class="bill-title">PROFORMA INVOICE</h2>
           <table>
             <thead>
-              <tr><th style="width: 40px; text-align: center;">#</th><th>VEHICLE DESCRIPTION</th><th style="width: 60px; text-align: center;">QTY</th><th style="width: 120px; text-align: right;">UNIT PRICE</th><th style="width: 130px; text-align: right;">AMOUNT (₦)</th></tr>
+              <tr>
+                <th style="width: 45px; text-align: center;">S/N</th>
+                <th>DESCRIPTION/SPECIFICATION</th>
+                <th style="width: 60px; text-align: center;">UNIT</th>
+                <th style="width: 130px; text-align: right;">UNIT PRICE (₦)</th>
+                <th style="width: 140px; text-align: right;">TOTAL (₦)</th>
+              </tr>
             </thead>
             <tbody>
-              ${quote.performance_quote_items?.map((item: any, i: number) => {
-                const vehicleDesc = item.vehicle_description
-                  ? item.vehicle_description
-                  : (`${item.vehicles?.year || ''} ${item.vehicles?.make || ''} ${item.vehicles?.model || ''} ${item.vehicles?.trim || ''}`).trim();
-                return `
+              ${quote.performance_quote_items?.map((item: any, i: number) => `
                 <tr>
-                  <td style="text-align: center;">${i+1}.</td>
-                  <td>${vehicleDesc.toUpperCase()}</td>
-                  <td style="text-align: center;">${item.quantity}</td>
-                  <td style="text-align: right;">₦${Number(item.base_price).toLocaleString()}</td>
-                  <td style="text-align: right; font-weight: 700;">₦${(Number(item.base_price) * Number(item.quantity)).toLocaleString()}</td>
+                  <td style="text-align: center; vertical-align: top;">${i+1}.</td>
+                  <td style="vertical-align: top;">${renderVehicleSpecHTML(item)}</td>
+                  <td style="text-align: center; vertical-align: top;">${item.quantity}</td>
+                  <td style="text-align: right; vertical-align: top;">₦${Number(item.base_price).toLocaleString()}</td>
+                  <td style="text-align: right; font-weight: 700; vertical-align: top;">₦${(Number(item.base_price) * Number(item.quantity)).toLocaleString()}</td>
                 </tr>
-              `}).join('')}
+              `).join('')}
             </tbody>
           </table>
 
           ${quote.performance_quote_items?.some((item: any) => item.has_duty) ? `
           <h3 style="margin-top: 16px; margin-bottom: 6px; font-weight: 900; text-transform: uppercase; font-size: 12px; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; color: #0f172a;">CUSTOM DUTY</h3>
           <table>
-            <thead><tr><th style="width: 40px; text-align: center;">#</th><th>DESCRIPTION</th><th style="width: 60px; text-align: center;">QTY</th><th style="width: 120px; text-align: right;">UNIT PRICE</th><th style="width: 130px; text-align: right;">AMOUNT (₦)</th></tr></thead>
+            <thead>
+              <tr>
+                <th style="width: 45px; text-align: center;">S/N</th>
+                <th>DESCRIPTION/SPECIFICATION</th>
+                <th style="width: 60px; text-align: center;">UNIT</th>
+                <th style="width: 130px; text-align: right;">UNIT PRICE (₦)</th>
+                <th style="width: 140px; text-align: right;">TOTAL (₦)</th>
+              </tr>
+            </thead>
             <tbody>
               ${quote.performance_quote_items?.filter((item: any) => item.has_duty).map((item: any, i: number) => {
-                const dutyDesc = item.vehicle_description
-                  ? item.vehicle_description
+                const rawDutyDesc = item.vehicle_description
+                  ? item.vehicle_description.split('\n')[0]
                   : (`${item.vehicles?.make || ''} ${item.vehicles?.model || ''}`).trim();
                 return `
                 <tr>
-                  <td style="text-align: center;">${i+1}.</td>
-                  <td>CUSTOM DUTY - ${dutyDesc.toUpperCase()}</td>
-                  <td style="text-align: center;">${item.quantity}</td>
-                  <td style="text-align: right;">₦${Number(item.duty_price).toLocaleString()}</td>
-                  <td style="text-align: right; font-weight: 700;">₦${(Number(item.duty_price) * Number(item.quantity)).toLocaleString()}</td>
+                  <td style="text-align: center; vertical-align: top;">${i+1}.</td>
+                  <td style="vertical-align: top; font-weight: 700;">CUSTOM DUTY - ${rawDutyDesc.toUpperCase()}</td>
+                  <td style="text-align: center; vertical-align: top;">${item.quantity}</td>
+                  <td style="text-align: right; vertical-align: top;">₦${Number(item.duty_price).toLocaleString()}</td>
+                  <td style="text-align: right; font-weight: 700; vertical-align: top;">₦${(Number(item.duty_price) * Number(item.quantity)).toLocaleString()}</td>
                 </tr>
               `}).join('')}
             </tbody>
@@ -644,32 +712,29 @@ export default function PerformanceQuotes() {
         <table>
           <thead>
             <tr>
-              <th style="width: 40px; text-align: center;">#</th>
-              <th>VEHICLE DESCRIPTION</th>
-              <th style="width: 60px; text-align: center;">QTY</th>
-              <th style="width: 120px;">UNIT PRICE</th>
-              <th style="width: 120px; text-align: right;">AMOUNT (₦)</th>
+              <th style="width: 45px; text-align: center;">S/N</th>
+              <th>DESCRIPTION/SPECIFICATION</th>
+              <th style="width: 60px; text-align: center;">UNIT</th>
+              <th style="width: 130px; text-align: right;">UNIT PRICE (₦)</th>
+              <th style="width: 140px; text-align: right;">TOTAL (₦)</th>
             </tr>
-          </the          <tbody>
+          </thead>
+          <tbody>
             ${(() => {
               let rowsHtml = '';
               let rowCounter = 1;
 
               quote.performance_quote_items?.forEach((item: any) => {
-                const v = item.vehicles;
                 const basePrice = Number(item.base_price) || 0;
                 const qty = Number(item.quantity) || 1;
-                const vehicleDesc = item.vehicle_description
-                  ? item.vehicle_description
-                  : `${v?.year || ''} ${v?.make || ''} ${v?.model || ''} ${v?.trim || ''}`.trim();
 
                 rowsHtml += `
                 <tr>
-                  <td>${rowCounter++}.</td>
-                  <td>${vehicleDesc.toUpperCase()}</td>
-                  <td style="text-align: center;">${qty}</td>
-                  <td>₦${basePrice.toLocaleString()}</td>
-                  <td style="text-align: right;">₦${(basePrice * qty).toLocaleString()}</td>
+                  <td style="text-align: center; vertical-align: top;">${rowCounter++}.</td>
+                  <td style="vertical-align: top;">${renderVehicleSpecHTML(item)}</td>
+                  <td style="text-align: center; vertical-align: top;">${qty}</td>
+                  <td style="text-align: right; vertical-align: top;">₦${basePrice.toLocaleString()}</td>
+                  <td style="text-align: right; font-weight: 700; vertical-align: top;">₦${(basePrice * qty).toLocaleString()}</td>
                 </tr>
                 `;
               });
@@ -684,11 +749,11 @@ export default function PerformanceQuotes() {
         <table>
           <thead>
             <tr>
-              <th style="width: 40px; text-align: center;">#</th>
-              <th>DESCRIPTION</th>
-              <th style="width: 60px; text-align: center;">QTY</th>
-              <th style="width: 120px;">UNIT PRICE</th>
-              <th style="width: 120px; text-align: right;">AMOUNT (₦)</th>
+              <th style="width: 45px; text-align: center;">S/N</th>
+              <th>DESCRIPTION/SPECIFICATION</th>
+              <th style="width: 60px; text-align: center;">UNIT</th>
+              <th style="width: 130px; text-align: right;">UNIT PRICE (₦)</th>
+              <th style="width: 140px; text-align: right;">TOTAL (₦)</th>
             </tr>
           </thead>
           <tbody>
@@ -697,20 +762,19 @@ export default function PerformanceQuotes() {
               let dutyCounter = 1;
               quote.performance_quote_items?.forEach((item: any) => {
                 if (item.has_duty) {
-                  const v = item.vehicles;
                   const dutyPrice = Number(item.duty_price) || 0;
                   const qty = Number(item.quantity) || 1;
-                  const vehicleDesc = item.vehicle_description
-                    ? item.vehicle_description
-                    : `${v?.year || ''} ${v?.make || ''} ${v?.model || ''}`.trim();
+                  const rawDutyDesc = item.vehicle_description
+                    ? item.vehicle_description.split('\n')[0]
+                    : `${item.vehicles?.make || ''} ${item.vehicles?.model || ''}`.trim();
 
                   rowsHtml += `
                   <tr>
-                    <td style="text-align: center;">${dutyCounter++}.</td>
-                    <td>CUSTOM DUTY - ${vehicleDesc.toUpperCase()}</td>
-                    <td style="text-align: center;">${qty}</td>
-                    <td>₦${dutyPrice.toLocaleString()}</td>
-                    <td style="text-align: right;">₦${(dutyPrice * qty).toLocaleString()}</td>
+                    <td style="text-align: center; vertical-align: top;">${dutyCounter++}.</td>
+                    <td style="vertical-align: top; font-weight: 700;">CUSTOM DUTY - ${rawDutyDesc.toUpperCase()}</td>
+                    <td style="text-align: center; vertical-align: top;">${qty}</td>
+                    <td style="text-align: right; vertical-align: top;">₦${dutyPrice.toLocaleString()}</td>
+                    <td style="text-align: right; font-weight: 700; vertical-align: top;">₦${(dutyPrice * qty).toLocaleString()}</td>
                   </tr>
                   `;
                 }
