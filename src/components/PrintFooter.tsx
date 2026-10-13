@@ -89,11 +89,13 @@ export function getPrintFooterHTML(customerSignature?: string, companySignature?
       </p>
 
       <!-- Bottom Graphic Bar -->
-      <div style="position: relative; height: 26px; width: 100%; margin-top: 6px;">
-        <svg style="position: absolute; left: 0; bottom: 0; width: 44px; height: 26px;" viewBox="0 0 44 26">
+      <div style="position: relative; height: 26px; width: 100%; margin-top: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+        <svg style="position: absolute; left: 30px; right: 0; bottom: 0; width: calc(100% - 30px); height: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact;" viewBox="0 0 100 4" preserveAspectRatio="none">
+          <rect x="0" y="0" width="100" height="4" fill="#C0392B" />
+        </svg>
+        <svg style="position: absolute; left: 0; bottom: 0; width: 44px; height: 26px; -webkit-print-color-adjust: exact; print-color-adjust: exact;" viewBox="0 0 44 26">
           <polygon points="0,12 32,0 44,26 0,26" fill="#1E3A8A" />
         </svg>
-        <div style="position: absolute; left: 30px; right: 0; bottom: 0; height: 4px; background: #C0392B;"></div>
       </div>
     </div>
   `;

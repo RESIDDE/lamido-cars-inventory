@@ -40,6 +40,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download, Mail, ArrowLeft } from "lucide-react";
 
+// Conditions that legacy descriptions prefixed onto the vehicle title.
+// They now live on their own "Condition:" line underneath the vehicle.
+const KNOWN_CONDITIONS = ["Brand New", "Foreign Used", "Locally Used", "Nigerian Used", "Used", "New"];
+
+const splitConditionFromTitle = (title: string): { title: string; condition: string } => {
+  for (const c of KNOWN_CONDITIONS) {
+    const re = new RegExp(`^${c}\\s+(?=\\S)`, 'i');
+    if (re.test(title)) return { title: title.replace(re, '').trim(), condition: c };
+  }
+  return { title, condition: '' };
+};
+
 const renderVehicleSpecHTML = (item: any) => {
   const rawDesc = item.vehicle_description;
   const v = item.vehicles;
@@ -79,11 +91,20 @@ const renderVehicleSpecHTML = (item: any) => {
       });
     }
   } else if (v) {
-    const condition = v.condition || 'Brand New';
-    title = `${condition} ${v.make || ''} ${v.model || ''} ${v.trim || ''}`.trim();
+    title = `${v.make || ''} ${v.model || ''} ${v.trim || ''}`.trim();
+    subLines.push(`Condition: ${v.condition || 'Brand New'}`);
     if (v.year) subLines.push(`Model: ${v.year}`);
     if (v.transmission) subLines.push(`Transmission: ${v.transmission}`);
     if (v.vin) subLines.push(`VIN: ${v.vin}`);
+  }
+
+  // Legacy descriptions carried the condition inside the title - move it below.
+  if (!subLines.some((l: string) => /^condition:/i.test(l))) {
+    const split = splitConditionFromTitle(title);
+    if (split.condition) {
+      title = split.title;
+      subLines.unshift(`Condition: ${split.condition}`);
+    }
   }
 
   return `
@@ -410,8 +431,9 @@ export default function PerformanceQuotes() {
     const { make, model, year, vin, price, condition, transmission, cylinders } = manualVehicleForm;
     if (!make.trim() || !model.trim()) return;
     
-    const title = `${condition ? condition.trim() : 'Brand New'} ${make.trim()} ${model.trim()}`;
+    const title = `${make.trim()} ${model.trim()}`;
     const lines: string[] = [title];
+    lines.push(`Condition: ${condition ? condition.trim() : 'Brand New'}`);
     if (year.trim()) lines.push(`Model: ${year.trim()}`);
     if (transmission.trim()) lines.push(`Transmission: ${transmission.trim()}`);
     if (cylinders.trim()) lines.push(`Engine: ${cylinders.trim()}`);
@@ -509,7 +531,7 @@ export default function PerformanceQuotes() {
         th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-size: 12px; font-weight: 600; }
         th { background: #f1f5f9; text-transform: uppercase; font-weight: 800; font-size: 11px; }
         .total-row td { border-top: 3px solid #1e293b; font-weight: 900; font-size: 15px; }
-        .amount-words { font-weight: 800; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .amount-words { font-weight: 400; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
         .notes-box { font-size: 12px; color: #334155; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
         .field-row { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
         .field-label { font-weight: 800; color: #475569; min-width: 140px; white-space: nowrap; }
@@ -614,7 +636,7 @@ export default function PerformanceQuotes() {
           ${quote.notes ? `<div class="notes-box"><strong>NOTES / TERMS:</strong><br/>${quote.notes}</div>` : ''}
         </div>
       </div>
-      ${getPrintFooter()}
+      ${getPrintFooterHTML()}
       </body></html>`;
 
       const iframe = document.createElement('iframe');
@@ -676,6 +698,7 @@ export default function PerformanceQuotes() {
     <style>
       @page { margin: 0; size: A4; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20mm; width: 210mm; min-height: 297mm; margin: 0 auto; box-sizing: border-box; color: #1a1a1a; line-height: 1.3; background: white; }
       .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
       .bill-to { margin-bottom: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
@@ -688,7 +711,7 @@ export default function PerformanceQuotes() {
       th { background: #f1f5f9; text-transform: uppercase; font-weight: 800; font-size: 11px; }
       td:first-child { width: 40px; text-align: center; }
       .total-row td { border-top: 3px solid #1e293b; font-weight: 900; font-size: 15px; }
-      .amount-words { font-weight: 800; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+      .amount-words { font-weight: 400; margin-bottom: 12px; font-size: 12px; text-transform: uppercase; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
       .notes-box { font-size: 12px; color: #334155; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
       .field-row { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
       .field-label { font-weight: 800; color: #475569; min-width: 140px; white-space: nowrap; }
@@ -802,7 +825,7 @@ export default function PerformanceQuotes() {
         </div>
 
         <div class="amount-words">
-          AMOUNT IN WORDS: ${numberToWords(Number(quote.total_amount) || 0)}
+          <strong>AMOUNT IN WORDS:</strong> ${numberToWords(Number(quote.total_amount) || 0)}
         </div>
 
         ${(quote.bank_name || quote.account_number || quote.account_name) ? `
