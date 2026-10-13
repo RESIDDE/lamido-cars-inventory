@@ -448,7 +448,7 @@ export default function Inspections() {
                         {i.vehicles?.vin && <p className="text-[10px] font-mono text-muted-foreground bg-foreground/5 px-2 py-0.5 rounded-md w-fit border border-white/5">VIN: {i.vehicles.vin}</p>}
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/5">
                         <div className="space-y-0.5">
                           <p className="text-[9px] uppercase font-bold text-muted-foreground">Color</p>
                           <p className="text-sm font-semibold">{i.vehicles?.color || "—"}</p>
@@ -500,7 +500,7 @@ export default function Inspections() {
                       <Car className="w-4 h-4 text-rose-400" />
                       <h4 className="font-bold text-sm uppercase tracking-wider">Pickup Status</h4>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                        <div>
                          <p className="text-[10px] uppercase font-bold text-muted-foreground">Date & Time</p>
                          <p className="text-sm font-medium">{i.pickup_date ? format(new Date(i.pickup_date), "dd MMM yyyy HH:mm") : "N/A"}</p>
@@ -527,7 +527,7 @@ export default function Inspections() {
                         <UserPlus className="w-4 h-4 text-indigo-400" />
                         <h4 className="font-bold text-sm uppercase tracking-wider text-indigo-400">Picker Information</h4>
                       </div>
-                      <div className="grid grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                          <div>
                            <p className="text-[10px] uppercase font-bold text-muted-foreground">Sent By</p>
                            <p className="text-sm font-medium">{i.sent_by || "—"}</p>
@@ -676,7 +676,7 @@ export default function Inspections() {
                  </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-3">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                  <div className="space-y-2">
                    <Label className="text-xs font-semibold text-muted-foreground">Name of Person picking up the vehicle *</Label>
                    <Input 

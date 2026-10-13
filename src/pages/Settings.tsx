@@ -943,7 +943,7 @@ export default function Settings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-5 rounded-2xl bg-muted/40 border border-border/80 space-y-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Interval Settings</span>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Months</Label>
                   <Input

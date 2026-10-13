@@ -443,7 +443,7 @@ export default function SalesAgreement() {
             </div>
 
             {/* Two-column: Seller & Buyer */}
-            <div className="grid grid-cols-2 gap-4 print:gap-3 mb-2 print:mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 print:gap-3 mb-2 print:mb-1">
               <section>
                 <h2 className="font-black text-[10px] uppercase tracking-wide mb-0.5 bg-gray-100 px-2 py-0.5 rounded">Seller's Information</h2>
                 <div className="space-y-0">
@@ -467,7 +467,7 @@ export default function SalesAgreement() {
             {/* Vehicle Details */}
             <section className="mb-2 print:mb-1">
               <h2 className="font-black text-[10px] uppercase tracking-wide mb-0.5 bg-gray-100 px-2 py-0.5 rounded">Vehicle Details</h2>
-              <div className="grid grid-cols-2 gap-x-4 print:gap-x-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-4 print:gap-x-3">
                 <Field label="Make / Brand" value={previewData.vehicleMake} />
                 <Field label="Year Model" value={previewData.vehicleYearModel} />
                 <Field label="Color" value={previewData.vehicleColor} />
@@ -521,7 +521,7 @@ export default function SalesAgreement() {
             {/* Signatures & Witnesses — Matching Template Grid */}
             <section className="mt-2 print:mt-1">
               <h2 className="font-black text-[10px] uppercase tracking-wide mb-1 bg-gray-100 px-2 py-0.5 rounded">Signatures &amp; Witnesses</h2>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 print:gap-x-4 print:gap-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6 gap-y-2 print:gap-x-4 print:gap-y-1.5">
                 {/* Buyer */}
                 <div>
                   <p className="text-[9px] font-bold text-gray-700 mb-0.5">Buyer's Name &amp; Signature:</p>

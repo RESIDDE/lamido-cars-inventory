@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      // `xs` covers large phones in landscape and small tablets; it was already
+      // being used by VehicleDetail before it existed as a real breakpoint.
+      screens: {
+        xs: "480px",
+      },
       fontFamily: {
         sans: ["Inter", "sans-serif"],
         heading: ["Outfit", "sans-serif"],

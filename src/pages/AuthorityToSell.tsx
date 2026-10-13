@@ -360,7 +360,7 @@ export default function AuthorityToSell() {
           {/* Vehicle Information */}
           <section className="mb-3 print:mb-2">
             <h2 className="font-black text-[11px] uppercase tracking-wide mb-1 bg-gray-100 px-2 py-0.5 rounded text-gray-900">Vehicle Information</h2>
-            <div className="grid grid-cols-2 gap-x-6 print:gap-x-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6 print:gap-x-4">
               <Field label="Make / Brand" value={previewData.vehicleMake} />
               <Field label="Year Model" value={previewData.vehicleYearModel} />
               <Field label="Color" value={previewData.vehicleColor} />
@@ -412,7 +412,7 @@ export default function AuthorityToSell() {
           {/* Signatures */}
           <section className="mt-3 print:mt-2">
             <h2 className="font-black text-[11px] uppercase tracking-wide mb-2 text-gray-900">Signatures</h2>
-            <div className="grid grid-cols-2 gap-12 print:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-12 print:gap-8">
               {/* Owner / Representative */}
               <div>
                 <p className="text-[10px] font-bold text-gray-600 mb-0.5">Owner / Representative Signature:</p>

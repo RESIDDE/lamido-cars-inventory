@@ -749,7 +749,7 @@ export default function VehiclesList() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 py-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-1">
                   <div className="bg-foreground/5 p-2 rounded-xl border border-white/5">
                     <p className="text-[9px] text-muted-foreground uppercase font-bold">Condition</p>
                     <p className="text-xs font-semibold">{v.condition || "Used"}</p>

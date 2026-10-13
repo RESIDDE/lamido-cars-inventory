@@ -23,9 +23,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="h-screen flex w-full bg-background text-foreground">
+      <div className="h-dvh flex w-full bg-background text-foreground">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 sm:rounded-l-[2rem] sm:border-l sm:border-y sm:my-2 sm:mr-2 shadow-2xl relative overflow-hidden transition-all duration-300 bg-background/95 border-border/80">
+        {/* The inset "card" treatment only reads correctly next to a docked
+            sidebar, so below lg the panel runs full-bleed and keeps the width. */}
+        <div className="flex-1 flex flex-col min-w-0 lg:rounded-l-[2rem] lg:border-l lg:border-y lg:my-2 lg:mr-2 shadow-2xl relative overflow-hidden transition-all duration-300 bg-background/95 border-border/80">
           {/* Frosted-glass header */}
           <header className="sticky top-0 z-30 h-16 flex items-center px-4 sm:px-6 gap-2 print:hidden bg-background/80 backdrop-blur-xl border-b border-border/80">
             <SidebarTrigger className="mr-2 -ml-2 rounded-full hover:bg-muted transition-colors text-foreground/70 hover:text-foreground" />

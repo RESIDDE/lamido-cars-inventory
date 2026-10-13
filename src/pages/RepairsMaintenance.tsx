@@ -1594,7 +1594,7 @@ export default function RepairsMaintenance() {
                        </PieChart>
                     </ResponsiveContainer>
                  </div>
-                 <div className="grid grid-cols-2 gap-4 w-full mt-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
                     {statusSplit.map((s, i) => (
                        <div key={i} className="flex flex-col items-center p-2 rounded-xl bg-foreground/5">
                           <span className="text-[10px] text-muted-foreground font-bold">{s.name}</span>
@@ -1686,7 +1686,7 @@ export default function RepairsMaintenance() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/5">
                       <div className="bg-background/50 rounded-xl p-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Last Serviced</p>
                         <p className="text-sm font-semibold">
@@ -2295,7 +2295,7 @@ export default function RepairsMaintenance() {
                             onSelect={(id) => setForm(prev => ({ ...prev, customer_id: id, is_new_customer: false }))} 
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-[10px] font-bold">Phone Number</Label>
                             <Input 
@@ -2328,7 +2328,7 @@ export default function RepairsMaintenance() {
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-bold uppercase tracking-tight opacity-60">Company Name (If applicable)</Label>
                       <Input className="rounded-xl h-11 bg-background/50 border-white/10" value={form.company} onChange={(e) => setForm(prev => ({ ...prev, company: e.target.value }))} placeholder="e.g. Kconect" />
@@ -2349,7 +2349,7 @@ export default function RepairsMaintenance() {
                       onModelChange={(v) => setForm(prev => ({ ...prev, model: v, vehicle_id: "" }))}
                       onYearChange={(v) => setForm(prev => ({ ...prev, year: v, vehicle_id: "" }))}
                     />
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4">
                       <div className="space-y-1">
                         <Label className="text-[10px] font-bold">Color</Label>
                         <Input value={form.color} onChange={(e) => setForm(prev => ({ ...prev, color: e.target.value }))} placeholder="Color" className="h-9 text-xs rounded-lg" />
@@ -2405,7 +2405,7 @@ export default function RepairsMaintenance() {
 
                   <div className="space-y-3">
                     <Label className="text-[10px] font-extrabold uppercase opacity-60">Condition Check (Arrival)</Label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {['Scratches', 'Broken Lights', 'Interior Damage', 'Engine Noise', 'Warning Lights', 'Electrical Fault', 'AC Fault'].map((c) => (
                         <div key={c} className="flex items-center space-x-2 bg-foreground/5 p-2 rounded-lg border border-white/5">
                           <Checkbox 
@@ -2440,7 +2440,7 @@ export default function RepairsMaintenance() {
                     <div className="flex items-center gap-2 text-amber-500/70">
                       <Label className="text-[10px] font-extrabold uppercase">Painting & Bodywork</Label>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {['Buffing / Polishing', 'Full Respray', 'Panel Beating', 'Accident Repair', 'Chassis Alignment', 'Plastic Repair', 'Wheel Refurbishment'].map((p) => (
                         <div key={p} className="flex items-center space-x-2 bg-foreground/5 p-2 rounded-lg border border-white/5">
                           <Checkbox 
@@ -2467,7 +2467,7 @@ export default function RepairsMaintenance() {
                     <div className="flex items-center gap-2 text-blue-500/70">
                       <Label className="text-[10px] font-extrabold uppercase">Mechanical Service</Label>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {['Engine Service', 'Oil Change', 'Brake Service', 'Suspension', 'Electricals', 'AC Service', 'Diagnostics', 'Wheel Balancing'].map((m) => (
                         <div key={m} className="flex items-center space-x-2 bg-foreground/5 p-2 rounded-lg border border-white/5">
                           <Checkbox 
@@ -2601,7 +2601,7 @@ export default function RepairsMaintenance() {
                   </div>
 
                   {/* Row 1: Sub-totals */}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                     <div className="space-y-1">
                       <Label className="text-[10px] font-bold uppercase opacity-60">Parts</Label>
                       <CurrencyInput value={form.parts_total} onChange={(e) => setForm(prev => ({ ...prev, parts_total: e.target.value }))} placeholder="0" className="h-9 text-xs rounded-lg" />
@@ -2752,7 +2752,7 @@ export default function RepairsMaintenance() {
                                </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 text-sm mt-4 border-t border-white/5 pt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-4 border-t border-white/5 pt-4">
                                {h.replacement_parts && (
                                   <div>
                                      <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Parts Replaced</p>

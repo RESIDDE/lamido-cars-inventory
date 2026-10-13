@@ -88,6 +88,34 @@
     overflow-x: hidden;
     width: 100%;
     -webkit-tap-highlight-color: transparent;
+    /* Pairs with viewport-fit=cover so content clears the notch / rounded corners. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Nothing should be able to force the page wider than the screen. */
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+  }
+
+  /* Momentum scrolling for every pane that scrolls on touch, including the
+     horizontal wrappers the shadcn Table component creates. */
+  .overflow-auto,
+  .overflow-x-auto,
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Finger-sized hit areas on touch devices; mouse/trackpad keeps desktop sizing. */
+  @media (pointer: coarse) {
+    button,
+    [role="button"],
+    [role="tab"] {
+      min-height: 2.25rem;
+    }
   }
 
   h1, h2, h3, h4, h5, h6 {

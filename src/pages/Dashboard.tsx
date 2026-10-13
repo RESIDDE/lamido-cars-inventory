@@ -113,7 +113,7 @@ const WelcomeLanding = ({ profile, user, role, permissions }: any) => {
       </p>
 
       {assignedPages.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-4xl">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-4xl">
           {assignedPages.map((page) => (
             <Link
               key={page.key}
@@ -578,7 +578,7 @@ export default function Dashboard() {
             </div>
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { to: "/vehicles",        Icon: Car,       count: vehicles.length,       label: "Lamido Stock" },
                 { to: "/resale-vehicles", Icon: Car,       count: resaleVehicles.length,  label: "Resale Stock" },

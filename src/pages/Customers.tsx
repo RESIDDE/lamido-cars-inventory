@@ -281,7 +281,7 @@ export default function Customers() {
                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full Name *</Label>
                <Input className="rounded-xl h-11 bg-background/50 border-white/10 focus-visible:ring-emerald-500" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Doe" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</Label>
                  <Input className="rounded-xl h-11 bg-background/50 border-white/10 focus-visible:ring-emerald-500" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@example.com" />

@@ -837,7 +837,7 @@ export default function Inquiries() {
                 </div>
                 <div className="p-6 space-y-6">
                   {/* Customer & Intake Info */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Customer</p>
                       <p className="font-semibold text-sm">{i.customer_id ? customerMap[i.customer_id] || "—" : i.manual_customer_name || "—"}</p>
@@ -869,7 +869,7 @@ export default function Inquiries() {
                   {/* Advanced Questionnaire */}
                   <div className="bg-foreground/5 p-4 rounded-2xl border border-white/5">
                     <p className="text-[10px] font-bold uppercase text-muted-foreground mb-3 pb-2 border-b border-white/5">Advanced Questionnaire</p>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <p className="text-[10px] font-bold uppercase text-muted-foreground">Budget</p>
                         <p className="text-sm font-medium">{i.advanced_questionnaire?.budget || "—"}</p>
