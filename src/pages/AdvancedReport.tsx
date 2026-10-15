@@ -153,7 +153,7 @@ export default function AdvancedReport() {
   const { data: sales = [] } = useQuery({
     queryKey: ["report_sales", refreshKey],
     queryFn: async () => {
-      const { data } = await supabase.from("sales").select("*, vehicles(*), customers(*)").order("sale_date", { ascending: false });
+      const { data } = await supabase.from("sales").select("*, vehicles(*), customers(*), sale_vehicles(*, vehicles(*))").order("sale_date", { ascending: false });
       return data || [];
     },
   });
@@ -225,8 +225,19 @@ export default function AdvancedReport() {
   const fCustomers = useMemo(() => customers.filter((c: any) => inMonth(c.created_at)), [customers, selectedMonth]);
 
   // ── Revenue & Profit ──────────────────────────────────────────────────────
-  const totalRevenue = useMemo(() => fSales.reduce((s: number, x: any) => s + (Number(x.selling_price) || 0), 0), [fSales]);
-  const totalCostOfGoods = useMemo(() => fSales.reduce((s: number, x: any) => s + (Number(x.cost_price) || 0), 0), [fSales]);
+  // A sale covers either several vehicles via sale_vehicles, or one via vehicle_id
+  // on older rows. cost_price belongs to the vehicle, never to the sale.
+  const vehiclesOfSale = (x: any): any[] => {
+    const linked = (x.sale_vehicles || []).map((sv: any) => sv.vehicles).filter(Boolean);
+    if (linked.length) return linked;
+    return x.vehicles ? [x.vehicles] : [];
+  };
+  const revenueOfSale = (x: any) => Number(x.sale_price) || 0;
+  const costOfSale = (x: any) =>
+    vehiclesOfSale(x).reduce((sum: number, v: any) => sum + (Number(v.cost_price) || 0), 0);
+
+  const totalRevenue = useMemo(() => fSales.reduce((s: number, x: any) => s + revenueOfSale(x), 0), [fSales]);
+  const totalCostOfGoods = useMemo(() => fSales.reduce((s: number, x: any) => s + costOfSale(x), 0), [fSales]);
   const totalProfit = totalRevenue - totalCostOfGoods;
   const totalExpenses = useMemo(() => fExpenses.reduce((s: number, x: any) => s + (Number(x.amount) || 0), 0), [fExpenses]);
   const netProfit = totalProfit - totalExpenses;
@@ -236,7 +247,7 @@ export default function AdvancedReport() {
   // Prior period for delta
   const prevMonth = format(subMonths(new Date(), 1), "yyyy-MM");
   const prevSales = useMemo(() => sales.filter((s: any) => format(new Date(s.sale_date || s.created_at), "yyyy-MM") === prevMonth), [sales]);
-  const prevRevenue = prevSales.reduce((s: number, x: any) => s + (Number(x.selling_price) || 0), 0);
+  const prevRevenue = prevSales.reduce((s: number, x: any) => s + revenueOfSale(x), 0);
   const revenueDelta = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : 0;
 
   // ── Vehicles ──────────────────────────────────────────────────────────────
@@ -269,8 +280,8 @@ export default function AdvancedReport() {
       const label = format(d, "MMM yy");
       const monthSales = sales.filter((s: any) => format(new Date(s.sale_date || s.created_at), "yyyy-MM") === key);
       const monthExpenses = expenses.filter((e: any) => format(new Date(e.expense_date || e.created_at), "yyyy-MM") === key);
-      const revenue = monthSales.reduce((s: number, x: any) => s + (Number(x.selling_price) || 0), 0);
-      const cost = monthSales.reduce((s: number, x: any) => s + (Number(x.cost_price) || 0), 0);
+      const revenue = monthSales.reduce((s: number, x: any) => s + revenueOfSale(x), 0);
+      const cost = monthSales.reduce((s: number, x: any) => s + costOfSale(x), 0);
       const exp = monthExpenses.reduce((s: number, x: any) => s + (Number(x.amount) || 0), 0);
       const profit = revenue - cost - exp;
       return { label, "Revenue ₦": revenue, "Profit ₦": profit, "Expenses ₦": exp, count: monthSales.length };
@@ -334,16 +345,33 @@ export default function AdvancedReport() {
 
   // ── Top Selling Vehicles ──────────────────────────────────────────────────
   const topVehicles = useMemo(() => {
-    return fSales.slice(0, 5).map((s: any) => ({
-      name: s.vehicles ? `${s.vehicles.year} ${s.vehicles.make} ${s.vehicles.model}` : "Unknown",
-      revenue: Number(s.selling_price) || 0,
-      profit: (Number(s.selling_price) || 0) - (Number(s.cost_price) || 0),
-    }));
+    return fSales
+      .map((s: any) => {
+        const vs = vehiclesOfSale(s);
+        const name = vs.length
+          ? vs.map((v: any) => `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim()).join(" + ")
+          : "Unknown vehicle";
+        return { name, revenue: revenueOfSale(s), profit: revenueOfSale(s) - costOfSale(s) };
+      })
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
   }, [fSales]);
+
+  // Sales whose vehicles have no cost_price recorded: they count as zero cost, so
+  // gross profit and margin read higher than they really are.
+  const salesMissingCost = useMemo(
+    () => fSales.filter((x: any) => {
+      const vs = vehiclesOfSale(x);
+      return vs.length === 0 || vs.some((v: any) => v.cost_price == null);
+    }).length,
+    [fSales],
+  );
 
   // ── AI-style Insights ─────────────────────────────────────────────────────
   const insights = useMemo(() => {
     const list: { type: "good" | "warn" | "info"; message: string }[] = [];
+    if (salesMissingCost > 0)
+      list.push({ type: "warn", message: `${salesMissingCost} sale${salesMissingCost > 1 ? "s have vehicles" : " has a vehicle"} with no cost price recorded, so gross profit and margin below are higher than actual.` });
     if (profitMargin > 20) list.push({ type: "good", message: `Strong profit margin of ${profitMargin.toFixed(1)}% — business is performing well.` });
     else if (profitMargin < 5 && totalRevenue > 0) list.push({ type: "warn", message: `Low profit margin of ${profitMargin.toFixed(1)}%. Review cost prices and operating expenses.` });
     if (availableVehicles.length > 20) list.push({ type: "warn", message: `${availableVehicles.length} vehicles still in inventory. Consider promotions to improve turnover.` });
@@ -356,7 +384,7 @@ export default function AdvancedReport() {
     if (fSales.length === 0 && selectedMonth !== "all") list.push({ type: "info", message: "No sales recorded for this period. Check if data has been entered." });
     if (list.length === 0) list.push({ type: "info", message: "Overall business metrics look stable. Keep monitoring key indicators." });
     return list;
-  }, [profitMargin, availableVehicles, avgDaysToSell, conversionRate, totalExpenses, totalProfit, fRepairs, fSales, inquiries, selectedMonth]);
+  }, [profitMargin, availableVehicles, avgDaysToSell, conversionRate, totalExpenses, totalProfit, fRepairs, fSales, inquiries, selectedMonth, salesMissingCost]);
 
   // ── Scores / Health ───────────────────────────────────────────────────────
   const healthScore = useMemo(() => {
