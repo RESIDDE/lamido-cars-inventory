@@ -57,7 +57,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-auto animate-fade-up custom-scrollbar">
+          {/* scrollbar-gutter keeps the scrollbar's space reserved at all times. Without
+              it, content that sits near the scroll boundary makes the bar appear and
+              disappear, and each toggle changes the available width - which reflows the
+              page and resizes every chart. That feedback loop reads as flickering. */}
+          <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-auto [scrollbar-gutter:stable] animate-fade-up custom-scrollbar">
             <div className="mx-auto max-w-7xl h-full w-full">
               {children}
             </div>
