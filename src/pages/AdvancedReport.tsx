@@ -67,12 +67,8 @@ function KpiCard({ icon: Icon, label, value, sub, color, delta, deltaLabel }: {
 }) {
   const up = delta !== undefined ? delta >= 0 : null;
   return (
-    // The wrapper is the hover target and never moves; the card scales inside it.
-    // Scaling the same element that :hover is tested against moves the hit area
-    // under the pointer, so the card can flip in and out of :hover and visibly
-    // flicker. Dashboard already uses this group pattern and does not flicker.
-    <div className="group h-full">
-      <Card className="bento-card border-none shadow-xl h-full transition-transform duration-200 group-hover:scale-[1.01]">
+    <div className="h-full">
+      <Card className="bento-card no-hover border-none shadow-xl h-full">
         <CardContent className="p-5">
           <div className="flex justify-between items-start mb-3">
             <div className={`p-2.5 rounded-xl ${color}/10`}>
@@ -704,7 +700,7 @@ export default function AdvancedReport() {
       </div>
 
       {/* ── Business Health Score ─────────────────────────────────────────── */}
-      <div className="bento-card p-6 relative overflow-hidden">
+      <div className="bento-card no-hover p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
           <div className="flex items-center gap-5">
@@ -756,7 +752,7 @@ export default function AdvancedReport() {
       </div>
 
       {/* ── Revenue Trend Chart ──────────────────────────────────────────────── */}
-      <div className="bento-card p-6">
+      <div className="bento-card no-hover p-6">
         <SectionHeader icon={BarChart3} title="6-Month Revenue & Profit Trend" sub="Monthly financial performance overview" color="text-violet-400" />
         <div className="h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -802,7 +798,7 @@ export default function AdvancedReport() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Make Breakdown */}
-          <div className="bento-card p-5">
+          <div className="bento-card no-hover p-5">
             <h3 className="font-bold text-sm mb-4 flex items-center gap-2 text-foreground">
               <PieChartIcon className="h-4 w-4 text-sky-400" /> Inventory by Make
             </h3>
@@ -821,7 +817,7 @@ export default function AdvancedReport() {
             </div>
           </div>
           {/* Top Sales */}
-          <div className="bento-card p-5">
+          <div className="bento-card no-hover p-5">
             <h3 className="font-bold text-sm mb-4 flex items-center gap-2 text-foreground">
               <Trophy className="h-4 w-4 text-amber-400" /> Top Sales (This Period)
             </h3>
@@ -829,7 +825,7 @@ export default function AdvancedReport() {
               {topVehicles.length === 0 ? (
                 <p className="text-xs text-muted-foreground text-center py-6">No sales in this period</p>
               ) : topVehicles.map((v: any, i: number) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-foreground/5 hover:bg-foreground/10 transition-colors">
+                <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-foreground/5">
                   <span className={`text-xs font-black w-6 h-6 flex items-center justify-center rounded-full ${i === 0 ? "bg-amber-500/20 text-amber-500" : i === 1 ? "bg-foreground/10 text-foreground" : "bg-foreground/5 text-muted-foreground"}`}>
                     {i + 1}
                   </span>
@@ -855,7 +851,7 @@ export default function AdvancedReport() {
           <KpiCard icon={Star} label="Open Leads" value={String(inquiries.filter((i: any) => i.status === "open" || i.status === "pending" || !i.status).length)} color="text-violet-500" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="bento-card p-5">
+          <div className="bento-card no-hover p-5">
             <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-fuchsia-400" /> Customer Acquisition (6 Months)
             </h3>
@@ -871,7 +867,7 @@ export default function AdvancedReport() {
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="bento-card p-5">
+          <div className="bento-card no-hover p-5">
             <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
               <PieChartIcon className="h-4 w-4 text-sky-400" /> Inquiry Status Breakdown
             </h3>
@@ -913,7 +909,7 @@ export default function AdvancedReport() {
           <KpiCard icon={AlertCircle} label="Expense / Revenue" value={totalRevenue > 0 ? `${((totalExpenses / totalRevenue) * 100).toFixed(1)}%` : "—"} color="text-amber-400" />
         </div>
         {expenseCategoryBreak.length > 0 ? (
-          <div className="bento-card p-5">
+          <div className="bento-card no-hover p-5">
             <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
               <Layers className="h-4 w-4 text-red-400" /> Expenses by Category
             </h3>
@@ -932,7 +928,7 @@ export default function AdvancedReport() {
             </div>
           </div>
         ) : (
-          <div className="bento-card p-8 text-center">
+          <div className="bento-card no-hover p-8 text-center">
             <p className="text-sm text-muted-foreground">No expense data for this period.</p>
             <p className="text-xs text-muted-foreground/60 mt-1">Run the expenses SQL migration and add expense records.</p>
           </div>
@@ -948,14 +944,14 @@ export default function AdvancedReport() {
           <KpiCard icon={Clock} label="Pending" value={String(fRepairs.filter((r: any) => r.status === "pending" || r.status === "in_progress").length)} color="text-amber-500" />
           <KpiCard icon={DollarSign} label="Repair Revenue" value={`₦${repairRevenue.toLocaleString()}`} color="text-violet-500" />
         </div>
-        <div className="bento-card p-5">
+        <div className="bento-card no-hover p-5">
           <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
             <Wrench className="h-4 w-4 text-orange-400" /> Repair Job Status
           </h3>
           {repairStatus.length > 0 ? (
             <div className="flex flex-wrap gap-4">
               {repairStatus.map((s, i) => (
-                <div key={i} className="flex items-center gap-3 bento-card px-4 py-3 flex-1 min-w-[120px]">
+                <div key={i} className="flex items-center gap-3 bento-card no-hover px-4 py-3 flex-1 min-w-[120px]">
                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
                   <div>
                     <p className="text-lg font-extrabold">{s.value}</p>
@@ -985,7 +981,7 @@ export default function AdvancedReport() {
       <div>
         <SectionHeader icon={ShieldCheck} title="Audit Trail & System Activity" sub="All logged user actions across the system" color="text-emerald-500" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="bento-card p-5">
+          <div className="bento-card no-hover p-5">
             <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
               <Activity className="h-4 w-4 text-emerald-400" /> Activity (Last 10 Days)
             </h3>
@@ -1001,7 +997,7 @@ export default function AdvancedReport() {
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="bento-card p-5">
+          <div className="bento-card no-hover p-5">
             <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
               <Layers className="h-4 w-4 text-violet-400" /> Activity by Module
             </h3>
@@ -1028,7 +1024,7 @@ export default function AdvancedReport() {
         </div>
 
         {/* Recent Audit Logs */}
-        <div className="bento-card overflow-hidden mt-5">
+        <div className="bento-card no-hover overflow-hidden mt-5">
           <div className="p-4 border-b border-white/5 flex items-center justify-between">
             <h3 className="font-bold text-sm flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-400" /> Recent Audit Entries
@@ -1047,7 +1043,7 @@ export default function AdvancedReport() {
               </thead>
               <tbody>
                 {auditLogs.slice(0, 10).map((log: any) => (
-                  <tr key={log.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                  <tr key={log.id} className="border-b border-white/5">
                     <td className="px-4 py-2.5">
                       <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
                         log.action === "CREATE" ? "bg-emerald-500/10 text-emerald-400" :
@@ -1071,7 +1067,7 @@ export default function AdvancedReport() {
       </div>
 
       {/* ── All Insights ──────────────────────────────────────────────────────── */}
-      <div className="bento-card p-6">
+      <div className="bento-card no-hover p-6">
         <SectionHeader icon={Activity} title="Full Business Insights" sub="Complete AI analysis based on all data" color="text-violet-400" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {insights.map((ins, i) => <Insight key={i} {...ins} />)}

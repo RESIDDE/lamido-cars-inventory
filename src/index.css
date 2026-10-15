@@ -144,11 +144,13 @@
     @apply relative overflow-hidden rounded-3xl bg-card/90 dark:bg-white/5 backdrop-blur-2xl border border-border/80 dark:border-white/10 shadow-md dark:shadow-xl transition-all duration-300;
   }
 
-  .bento-card:hover {
+  /* `.no-hover` opts a card out entirely. The Advanced Report uses it so that
+     nothing on the page reacts to the pointer. */
+  .bento-card:not(.no-hover):hover {
     @apply border-border dark:border-white/15;
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
   }
-  .dark .bento-card:hover {
+  .dark .bento-card:not(.no-hover):hover {
     box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.06);
   }
 
