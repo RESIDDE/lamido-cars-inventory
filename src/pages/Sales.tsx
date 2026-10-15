@@ -439,7 +439,7 @@ export default function Sales() {
     const saleVehicleObjects = vehicles.filter(v => saleVehicleIds.includes(v.id));
 
     return `
-    <div class="receipt-page" style="${isBulk ? 'page-break-after: always; padding: 40px 0;' : ''}">
+    <div class="receipt-page" style="${isBulk ? 'page-break-after: always;' : ''}">
       <div class="date-section">RECEIPT NO: ${sale.id.slice(0, 8).toUpperCase()}<br/>DATE: ${new Date(sale.sale_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
 
       <div class="bill-to">
@@ -529,13 +529,13 @@ export default function Sales() {
 
     const html = `<html><head><title>${paymentLabel} - ${sale.id.slice(0, 8).toUpperCase()}</title>
     <style>
-      @page { margin: 0; size: auto; }
+      @page { margin: 0; size: A4; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.1; }
-      .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; padding: 0 20px; }
-      .bill-to { margin-bottom: 8px; padding: 0 20px; }
+      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20mm; width: 210mm; min-height: 297mm; margin: 0 auto; box-sizing: border-box; background: white; color: #1a1a1a; line-height: 1.1; }
+      .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; padding: 0; }
+      .bill-to { margin-bottom: 8px; padding: 0; }
       .bill-to p { margin: 1px 0; font-size: 12px; }
-      .main-container { background-color: transparent; border-radius: 20px; padding: 0px 20px; min-height: 550px; position: relative; border: none; }
+      .main-container { background-color: transparent; border-radius: 20px; padding: 0; min-height: 550px; position: relative; border: none; }
       .content-wrapper { position: relative; z-index: 1; }
       .bill-title { text-align: center; text-decoration: underline; font-weight: 900; font-size: 16px; margin-bottom: 8px; color: #1e293b; text-transform: uppercase; }
       .deposit-badge { display: inline-block; background: ${badgeColor}; color: #fff; font-weight: 900; font-size: 10px; padding: 3px 12px; border-radius: 20px; letter-spacing: 2px; text-transform: uppercase; margin: 0 auto 8px; }
@@ -651,11 +651,11 @@ export default function Sales() {
     logAction("PRINT", "Sales", sale.id, { vehicle: sale.sale_vehicles?.[0]?.vehicle ? `${sale.sale_vehicles[0].vehicle.year} ${sale.sale_vehicles[0].vehicle.make} ${sale.sale_vehicles[0].vehicle.model}` : "Vehicle" });
     const html = `<html><head><title>Receipt - ${sale.id.slice(0, 8).toUpperCase()}</title>
     <style>
-      @page { margin: 0; size: auto; }
+      @page { margin: 0; size: A4; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.1; }
-      .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; padding: 0 20px; }
-      .bill-to { margin-bottom: 8px; padding: 0 20px; }
+      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 20mm; width: 210mm; min-height: 297mm; margin: 0 auto; box-sizing: border-box; background: white; color: #1a1a1a; line-height: 1.1; }
+      .date-section { text-align: right; font-weight: 800; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; padding: 0; }
+      .bill-to { margin-bottom: 8px; padding: 0; }
       .bill-to p { margin: 1px 0; font-size: 12px; }
       .main-container {
         background-color: transparent;
@@ -711,11 +711,11 @@ export default function Sales() {
 
       const html = `<!DOCTYPE html><html><head><title>Receipt - ${sale.id}</title>
         <style>
-          @page { margin: 0; size: auto; }
+          @page { margin: 0; size: A4; }
           @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-          body { font-family: 'Roboto', 'Arial', sans-serif; padding: 40px; width: 750px; background: #fff; color: #1a1a1a; line-height: 1.4; }
-          .date-section { text-align: right; font-weight: 800; font-size: 14px; margin-bottom: 20px; text-transform: uppercase; padding: 0 30px; }
-          .bill-to { margin-bottom: 30px; padding: 0 30px; }
+          body { font-family: 'Roboto', 'Arial', sans-serif; padding: 76px; width: 794px; margin: 0; box-sizing: border-box; background: #fff; color: #1a1a1a; line-height: 1.4; }
+          .date-section { text-align: right; font-weight: 800; font-size: 14px; margin-bottom: 20px; text-transform: uppercase; padding: 0; }
+          .bill-to { margin-bottom: 30px; padding: 0; }
           .bill-to p { margin: 2px 0; font-size: 14px; }
           .main-container { border-radius: 40px; padding: 40px; min-height: 600px; position: relative; border: 1px solid #94a3b8; }
           .content-wrapper { position: relative; z-index: 1; }
@@ -767,7 +767,7 @@ export default function Sales() {
         const dataUrl = await toPng(contentEl, { pixelRatio: 2, backgroundColor: "#ffffff" });
         const { default: jsPDF } = await import("jspdf");
         const a4Width = 595;
-        const scale = a4Width / 750;
+        const scale = a4Width / 794;
         const pdfPageH = fullHeight * scale;
         const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: [a4Width, pdfPageH] });
         pdf.addImage(dataUrl, "PNG", 0, 0, a4Width, pdfPageH);
@@ -828,9 +828,9 @@ export default function Sales() {
     
     const html = `<html><head><title>Bulk Sales Receipts</title>
     <style>
-      @page { margin: 0; size: auto; }
+      @page { margin: 0; size: A4; }
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
-      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 15px; max-width: 800px; margin: 0 auto; color: #1a1a1a; line-height: 1.3; }
+      body { font-family: 'Roboto', 'Arial', sans-serif; padding: 0; width: 210mm; margin: 0 auto; background: white; color: #1a1a1a; line-height: 1.3; }
       .date-section { text-align: right; font-weight: 800; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; }
       .bill-to { margin-bottom: 15px; }
       .bill-to p { margin: 2px 0; font-size: 13px; }
@@ -849,7 +849,7 @@ export default function Sales() {
       .sig-box { width: 45%; text-align: center; font-size: 12px; }
       .signature-img { max-height: 40px; display: block; margin: 0 auto 5px; }
       @media print {
-        .receipt-page { page-break-after: always; }
+        .receipt-page { page-break-after: always; padding: 20mm; min-height: 297mm; box-sizing: border-box; }
       }
     </style></head><body>
     ${filtered.map(sale => `
