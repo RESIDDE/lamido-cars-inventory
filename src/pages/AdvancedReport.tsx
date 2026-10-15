@@ -61,66 +61,101 @@ const ChartTooltip = ({ active, payload, label }: any) => {
 };
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({ icon: Icon, label, value, sub, color, delta, deltaLabel }: {
-  icon: any; label: string; value: string; sub?: string; color: string;
-  delta?: number; deltaLabel?: string;
-}) {
-  const up = delta !== undefined ? delta >= 0 : null;
+// ─── Sparkline ────────────────────────────────────────────────────────────────
+/** Six-month shape behind a headline number. Decorative: the figure carries the value. */
+function Spark({ values }: { values: number[] }) {
+  if (!values.length) return <div className="h-[26px]" />;
+  const lo = Math.min(...values), hi = Math.max(...values);
+  const span = hi - lo || 1;
+  const W = 120, H = 26, pad = 3;
+  const pts = values.map((v, i) => [
+    (i * W) / Math.max(values.length - 1, 1),
+    H - pad - ((v - lo) / span) * (H - pad * 2),
+  ]);
+  const d = pts.map((pt, i) => `${i ? "L" : "M"}${pt[0].toFixed(1)} ${pt[1].toFixed(1)}`).join(" ");
+  const last = pts[pts.length - 1];
   return (
-    <div className="h-full">
-      <Card className="bento-card no-hover border-none shadow-xl h-full">
-        <CardContent className="p-5">
-          <div className="flex justify-between items-start mb-3">
-            <div className={`p-2.5 rounded-xl ${color}/10`}>
-              <Icon className={`h-5 w-5 ${color}`} />
-            </div>
-            {delta !== undefined && (
-              <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${up ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
-                {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                {Math.abs(delta).toFixed(1)}%
-              </span>
-            )}
-          </div>
-          <p className="text-2xl font-extrabold tracking-tight">{value}</p>
-          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-1">{label}</p>
-          {sub && <p className="text-[11px] text-muted-foreground/70 mt-1">{sub}</p>}
-          {deltaLabel && <p className="text-[11px] text-muted-foreground/60 mt-0.5">{deltaLabel}</p>}
-        </CardContent>
-      </Card>
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" className="block w-full h-[26px] mt-2.5">
+      <path d={d} fill="none" stroke="var(--chart-ink)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" opacity={0.55} />
+      <circle cx={last[0].toFixed(1)} cy={last[1].toFixed(1)} r={2.6} fill="var(--chart-rev)" />
+    </svg>
+  );
+}
+
+// ─── Headline figure ──────────────────────────────────────────────────────────
+function Figure({ label, value, delta, deltaSuffix = "%", deltaNote, spark }: {
+  label: string; value: string; delta?: number; deltaSuffix?: string; deltaNote?: string; spark?: number[];
+}) {
+  const up = delta !== undefined && delta >= 0;
+  return (
+    <div className="bg-card p-4 min-w-0">
+      <span className="block text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground mb-1.5">{label}</span>
+      <span className="block font-heading font-bold tracking-tight text-xl sm:text-2xl lg:text-[27px] leading-none tabular-nums">{value}</span>
+      {delta !== undefined ? (
+        <span className={`flex items-center gap-1.5 mt-2 text-xs font-semibold ${up ? "text-emerald-500" : "text-red-500"}`}>
+          {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+          <span className="tabular-nums">{Math.abs(delta).toFixed(1)}{deltaSuffix}</span>
+          {deltaNote && <span className="font-medium text-muted-foreground">{deltaNote}</span>}
+        </span>
+      ) : (
+        <span className="block mt-2 text-xs font-medium text-muted-foreground/70">Last 6 months</span>
+      )}
+      {spark && <Spark values={spark} />}
     </div>
   );
 }
 
-// ─── Section Header ───────────────────────────────────────────────────────────
-function SectionHeader({ icon: Icon, title, sub, color = "text-amber-500" }: {
-  icon: any; title: string; sub?: string; color?: string;
-}) {
+// ─── Compact metric strip ─────────────────────────────────────────────────────
+/** Replaces the old wall of large tiles: secondary numbers, read at a glance. */
+function Strip({ items }: { items: [string, string][] }) {
   return (
-    <div className="flex items-center gap-3 mb-5">
-      <div className={`p-2 rounded-xl bg-foreground/5`}>
-        <Icon className={`h-5 w-5 ${color}`} />
-      </div>
-      <div>
-        <h2 className="text-lg font-bold text-foreground">{title}</h2>
-        {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-      </div>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border rounded-xl overflow-hidden border border-border mb-4">
+      {items.map(([k, v]) => (
+        <div key={k} className="bg-card px-3.5 py-3 min-w-0">
+          <span className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground mb-1">{k}</span>
+          <span className="font-heading font-bold text-lg tracking-tight tabular-nums">{v}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-// ─── Insight Alert ────────────────────────────────────────────────────────────
+// ─── Ranked bar list ──────────────────────────────────────────────────────────
+/** Magnitude down a list: one hue, weight carried by length and opacity. */
+function BarList({ rows, format: fmt }: { rows: { name: string; value: number }[]; format?: (n: number) => string }) {
+  if (!rows.length) return <p className="text-xs text-muted-foreground py-6 text-center">No data for this period</p>;
+  const max = Math.max(...rows.map(r => r.value)) || 1;
+  return (
+    <div className="flex flex-col gap-2.5 mt-3.5">
+      {rows.map(r => (
+        <div key={r.name} className="grid grid-cols-[minmax(68px,110px)_1fr_auto] items-center gap-3 text-[12.5px]">
+          <span className="text-muted-foreground font-medium truncate capitalize">{r.name}</span>
+          <span className="h-2.5 rounded-full bg-muted/60 overflow-hidden min-w-0">
+            <span className="block h-full rounded-full" style={{
+              width: `${(r.value / max) * 100}%`,
+              backgroundColor: "var(--chart-rev)",
+              opacity: 0.45 + 0.55 * (r.value / max),
+            }} />
+          </span>
+          <span className="font-semibold tabular-nums">{fmt ? fmt(r.value) : r.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Insight row ──────────────────────────────────────────────────────────────
 function Insight({ type, message }: { type: "good" | "warn" | "info"; message: string }) {
-  const styles = {
-    good: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-400", Icon: CheckCircle2 },
-    warn: { bg: "bg-amber-500/10 border-amber-500/20", text: "text-amber-400", Icon: AlertTriangle },
-    info: { bg: "bg-sky-500/10 border-sky-500/20", text: "text-sky-400", Icon: Info },
+  const chip = {
+    good: { cls: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400", word: "Good" },
+    warn: { cls: "bg-amber-500/12 text-amber-600 dark:text-amber-400", word: "Watch" },
+    info: { cls: "bg-muted text-muted-foreground", word: "Data" },
   }[type];
-  const { bg, text, Icon } = styles;
   return (
-    <div className={`flex items-start gap-2.5 p-3 rounded-xl border ${bg}`}>
-      <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${text}`} />
-      <p className={`text-xs font-medium ${text}`}>{message}</p>
-    </div>
+    <li className="flex items-start gap-2.5 text-[13px] leading-relaxed">
+      <span className={`shrink-0 mt-px rounded px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.05em] ${chip.cls}`}>{chip.word}</span>
+      <span className="text-foreground/90">{message}</span>
+    </li>
   );
 }
 
@@ -133,6 +168,8 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => {
 export default function AdvancedReport() {
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState('inventory');
+  const [showTrendTable, setShowTrendTable] = useState(false);
   const generatedAt = format(new Date(), "dd MMM yyyy, HH:mm");
 
   // ── Queries ────────────────────────────────────────────────────────────────
@@ -408,6 +445,39 @@ export default function AdvancedReport() {
 
   const healthColor = healthScore >= 75 ? "text-emerald-500" : healthScore >= 50 ? "text-amber-500" : "text-red-500";
   const healthBg = healthScore >= 75 ? "bg-emerald-500" : healthScore >= 50 ? "bg-amber-500" : "bg-red-500";
+  const healthVerdict =
+    healthScore >= 75 ? "Margin and sales velocity are both healthy."
+    : healthScore >= 60 ? "Solid overall; a couple of indicators need watching."
+    : healthScore >= 40 ? "Mixed signals — check margin and stock turnover."
+    : "Several indicators are below target.";
+
+  // ── Headline figures ──────────────────────────────────────────────────────
+  // Month-on-month movement, shown only when a single month is in view; over
+  // "All time" there is no previous period to compare against.
+  const prevMonthStats = useMemo(() => {
+    const prev = monthlyTrend[monthlyTrend.length - 2];
+    return prev
+      ? { revenue: prev["Revenue ₦"], profit: prev["Profit ₦"], units: prev.count }
+      : null;
+  }, [monthlyTrend]);
+
+  const pctChange = (now: number, before: number) =>
+    before > 0 ? ((now - before) / before) * 100 : undefined;
+
+  const showDeltas = selectedMonth !== "all" && !!prevMonthStats;
+  const profitDelta = showDeltas ? pctChange(netProfit, prevMonthStats!.profit) : undefined;
+  const unitsDelta = showDeltas ? fSales.length - prevMonthStats!.units : undefined;
+  const marginDelta = showDeltas && prevMonthStats!.revenue > 0
+    ? profitMargin - (prevMonthStats!.profit / prevMonthStats!.revenue) * 100
+    : undefined;
+
+  // Six-month shape behind each headline number.
+  const sparks = useMemo(() => ({
+    revenue: monthlyTrend.map((m: any) => m["Revenue ₦"]),
+    profit: monthlyTrend.map((m: any) => m["Profit ₦"]),
+    margin: monthlyTrend.map((m: any) => (m["Revenue ₦"] > 0 ? (m["Profit ₦"] / m["Revenue ₦"]) * 100 : 0)),
+    units: monthlyTrend.map((m: any) => m.count),
+  }), [monthlyTrend]);
 
   // ── Document Report Generation ──────────────────────────────────────────
   const getReportHTML = () => {
@@ -637,6 +707,34 @@ export default function AdvancedReport() {
     logAction("EXPORT_CSV", "AdvancedReport", "summary");
   };
 
+  // Compact naira for headline figures: ₦88.3m reads faster than ₦88,300,000.
+  const shortNaira = (n: number) => {
+    const a = Math.abs(n);
+    if (a >= 1_000_000_000) return `₦${(n / 1_000_000_000).toFixed(1)}b`;
+    if (a >= 1_000_000) return `₦${(n / 1_000_000).toFixed(1)}m`;
+    if (a >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
+    return `₦${n.toLocaleString()}`;
+  };
+  const periodLabel = selectedMonth === "all"
+    ? "All time"
+    : MONTHS.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
+  const trendData = monthlyTrend.map((m: any) => ({
+    label: m.label,
+    Revenue: m["Revenue ₦"],
+    "Net profit": m["Profit ₦"],
+    Expenses: m["Expenses ₦"],
+  }));
+
+  const tabs: { key: string; label: string }[] = [
+    { key: "inventory", label: "Inventory" },
+    { key: "customers", label: "Customers" },
+    { key: "expenses", label: "Expenses" },
+    { key: "workshop", label: "Workshop" },
+    { key: "documents", label: "Documents" },
+    { key: "activity", label: "Activity" },
+  ];
+
   return (
     isLoading ? (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-muted-foreground">
@@ -644,440 +742,286 @@ export default function AdvancedReport() {
         <p className="text-sm font-semibold">Building report…</p>
       </div>
     ) : (
-    <div className="space-y-8 animate-fade-in pb-16 max-w-7xl mx-auto">
+    <div className="flex flex-col gap-5 animate-fade-in pb-16 max-w-7xl mx-auto">
+
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <BarChart3 className="w-3.5 h-3.5 text-violet-400/60" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-violet-400/60">Command Center</span>
-          </div>
-          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white/90">
+      <div className="flex flex-wrap items-end gap-x-5 gap-y-3.5">
+        <div className="flex-1 min-w-[240px]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.09em] text-muted-foreground mb-1">
+            Lamido Cars Ltd · RC 1907711
+          </p>
+          <h1 className="font-heading text-[22px] sm:text-[26px] lg:text-[29px] font-bold tracking-tight">
             Advanced Report
           </h1>
-          <p className="text-xs text-white/40 mt-0.5">
-            Comprehensive audit & analytics across all modules — generated {generatedAt}
+          <p className="text-[13px] text-muted-foreground mt-1">
+            {periodLabel} · generated {generatedAt}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex flex-wrap gap-2">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[180px] h-10 rounded-xl bg-background/50 border-white/10 text-sm">
+            <SelectTrigger className="w-[168px] h-[38px] rounded-xl text-sm">
               <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
               <SelectValue placeholder="All Time" />
             </SelectTrigger>
-            <SelectContent className="glass-panel rounded-xl">
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">All Time</SelectItem>
               {MONTHS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={() => setRefreshKey(k => k + 1)} className="rounded-xl border-white/10 hover:bg-white/5 h-10">
+          <Button variant="outline" size="sm" onClick={() => setRefreshKey(k => k + 1)} className="rounded-xl h-[38px]">
             <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
           </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="rounded-xl border-white/10 hover:bg-white/5 h-10 gap-1.5">
-                <Download className="h-3.5 w-3.5" /> Export Document <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+              <Button variant="outline" size="sm" className="rounded-xl h-[38px] gap-1.5">
+                <Download className="h-3.5 w-3.5" /> Export <ChevronDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="glass-panel rounded-xl">
-              <DropdownMenuItem onClick={handleExportPDF} className="cursor-pointer gap-2">
-                <FileText className="h-4 w-4 text-red-400" /> Export PDF Document
+            <DropdownMenuContent align="end" className="rounded-xl">
+              <DropdownMenuItem onClick={handleExportPDF} className="gap-2 cursor-pointer">
+                <FileText className="h-4 w-4" /> PDF document
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportExcel} className="cursor-pointer gap-2">
-                <FileSpreadsheet className="h-4 w-4 text-emerald-400" /> Export Excel (.xls)
+              <DropdownMenuItem onClick={handleExportExcel} className="gap-2 cursor-pointer">
+                <FileSpreadsheet className="h-4 w-4" /> Excel workbook
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportCSV} className="cursor-pointer gap-2">
-                <Sheet className="h-4 w-4 text-sky-400" /> Export CSV (.csv)
+              <DropdownMenuItem onClick={handleExportCSV} className="gap-2 cursor-pointer">
+                <Sheet className="h-4 w-4" /> CSV summary
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Button variant="outline" size="sm" onClick={handlePrint} className="rounded-xl border-white/10 hover:bg-white/5 h-10">
-            <Printer className="h-3.5 w-3.5 mr-1.5" /> Print Report
+          <Button variant="outline" size="sm" onClick={handlePrint} className="rounded-xl h-[38px]">
+            <Printer className="h-3.5 w-3.5 mr-1.5" /> Print
           </Button>
         </div>
       </div>
 
-      {/* ── Business Health Score ─────────────────────────────────────────── */}
-      <div className="bento-card no-hover p-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
-        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-          <div className="flex items-center gap-5">
-            <div className="relative">
-              <svg className="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
-                <circle cx="18" cy="18" r="15.915" fill="none" stroke="hsl(var(--foreground)/0.05)" strokeWidth="3" />
-                <circle
-                  cx="18" cy="18" r="15.915" fill="none"
-                  stroke={healthScore >= 75 ? "hsl(142 76% 36%)" : healthScore >= 50 ? "hsl(38 92% 50%)" : "hsl(0 84% 60%)"}
-                  strokeWidth="3" strokeDasharray={`${healthScore} ${100 - healthScore}`} strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center rotate-0">
-                <span className={`text-2xl font-black ${healthColor}`}>{healthScore}</span>
-                <span className="text-[9px] text-muted-foreground font-bold">/100</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Business Health</p>
-              <p className={`text-3xl font-extrabold ${healthColor}`}>
-                {healthScore >= 75 ? "Excellent" : healthScore >= 60 ? "Good" : healthScore >= 40 ? "Fair" : "Needs Attention"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Based on sales, margin, velocity & conversion</p>
-            </div>
-          </div>
-          <div className="flex-1 md:border-l border-white/5 md:pl-6">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-violet-400" /> AI Insights
+      {/* ── Headline figures ────────────────────────────────────────────────── */}
+      <section aria-label="Headline figures"
+        className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-px bg-border rounded-xl overflow-hidden border border-border">
+        <Figure label="Total revenue" value={shortNaira(totalRevenue)}
+          delta={revenueDelta !== undefined && showDeltas ? revenueDelta : undefined}
+          deltaNote="vs prev month" spark={sparks.revenue} />
+        <Figure label="Net profit" value={shortNaira(netProfit)}
+          delta={profitDelta} deltaNote="vs prev month" spark={sparks.profit} />
+        <Figure label="Net margin" value={`${profitMargin.toFixed(1)}%`}
+          delta={marginDelta} deltaSuffix=" pts" deltaNote="vs prev month" spark={sparks.margin} />
+        <Figure label="Vehicles sold" value={String(fSales.length)}
+          delta={unitsDelta} deltaSuffix="" deltaNote="vs prev month" spark={sparks.units} />
+      </section>
+
+      {/* ── Business health ─────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 bento-card no-hover px-4 py-3.5">
+        <span className="text-xs font-bold uppercase tracking-[0.06em] text-muted-foreground">Business health</span>
+        <span className="font-heading font-bold text-[17px] tabular-nums">
+          {healthScore}<span className="text-muted-foreground text-[13px]">/100</span>
+        </span>
+        <div className="flex-1 min-w-[150px] h-[7px] rounded bg-muted overflow-hidden">
+          <div className={`h-full rounded ${healthBg}`} style={{ width: `${healthScore}%` }} />
+        </div>
+        <span className="text-[12.5px] text-muted-foreground">{healthVerdict}</span>
+      </div>
+
+      {/* ── Revenue & profit trend ──────────────────────────────────────────── */}
+      <figure className="bento-card no-hover p-4 sm:p-5 m-0">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+          <div>
+            <h2 className="font-heading text-[15px] font-bold tracking-tight">Revenue and net profit</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Last six months · naira millions · expenses in the Expenses tab
             </p>
-            <div className="space-y-2">
-              {insights.slice(0, 3).map((ins, i) => <Insight key={i} {...ins} />)}
-            </div>
           </div>
+          <Button variant="outline" size="sm" className="rounded-xl h-[34px] text-xs"
+            onClick={() => setShowTrendTable(v => !v)} aria-expanded={showTrendTable}>
+            {showTrendTable ? "Hide table" : "Show table"}
+          </Button>
         </div>
-      </div>
 
-      {/* ── Top KPIs ─────────────────────────────────────────────────────────── */}
-      <div>
-        <SectionHeader icon={DollarSign} title="Financial Overview" sub="Revenue, profit, expenses & margins" color="text-emerald-500" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <KpiCard icon={DollarSign} label="Total Revenue" value={`₦${totalRevenue.toLocaleString()}`}
-            color="text-emerald-500" delta={selectedMonth !== "all" ? revenueDelta : undefined} deltaLabel="vs prev month" />
-          <KpiCard icon={TrendingUp} label="Gross Profit" value={`₦${totalProfit.toLocaleString()}`} color="text-sky-500" />
-          <KpiCard icon={Receipt} label="Total Expenses" value={`₦${totalExpenses.toLocaleString()}`} color="text-red-400" />
-          <KpiCard icon={Banknote} label="Net Profit" value={`₦${netProfit.toLocaleString()}`}
-            sub={`${profitMargin.toFixed(1)}% margin`} color={netProfit >= 0 ? "text-violet-500" : "text-red-500"} />
-          <KpiCard icon={Wrench} label="Repair Revenue" value={`₦${repairRevenue.toLocaleString()}`} color="text-amber-500" />
+        {/* Legend plus end-of-line labels: identity never rests on colour alone. */}
+        <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 mt-3 mb-1">
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <i className="w-2.5 h-2.5 rounded-sm" style={{ background: "var(--chart-rev)" }} />Revenue
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <i className="w-2.5 h-2.5 rounded-sm" style={{ background: "var(--chart-prof)" }} />Net profit
+          </span>
         </div>
-      </div>
 
-      {/* ── Revenue Trend Chart ──────────────────────────────────────────────── */}
-      <div className="bento-card no-hover p-6">
-        <SectionHeader icon={BarChart3} title="6-Month Revenue & Profit Trend" sub="Monthly financial performance overview" color="text-violet-400" />
-        <div className="h-[280px]">
+        <div className="h-[260px] sm:h-[290px] mt-1">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={monthlyTrend}>
+            <AreaChart data={trendData} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
               <defs>
-                <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(142 76% 36%)" stopOpacity={0} />
+                <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--chart-rev)" stopOpacity={0.22} />
+                  <stop offset="100%" stopColor="var(--chart-rev)" stopOpacity={0.02} />
                 </linearGradient>
-                <linearGradient id="prof" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(262 83% 58%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(262 83% 58%)" stopOpacity={0} />
+                <linearGradient id="gProf" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--chart-prof)" stopOpacity={0.22} />
+                  <stop offset="100%" stopColor="var(--chart-prof)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground)/0.05)" />
-              <XAxis dataKey="label" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₦${(v / 1000000).toFixed(1)}M`} />
-              <Tooltip content={<ChartTooltip />} />
-              <Area type="monotone" dataKey="Revenue ₦" stroke="hsl(142 76% 36%)" fill="url(#rev)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Profit ₦" stroke="hsl(262 83% 58%)" fill="url(#prof)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Expenses ₦" stroke="hsl(0 84% 60%)" fill="none" strokeWidth={1.5} strokeDasharray="4 2" />
+              <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: "var(--chart-ink)" }} axisLine={false} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 11, fill: "var(--chart-ink)" }} axisLine={false} tickLine={false} width={40}
+                tickFormatter={(v: number) => (v >= 1_000_000 ? `${Math.round(v / 1_000_000)}m` : v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))}
+              />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: "var(--chart-ink)", strokeDasharray: "3 3" }} />
+              <Area type="monotone" dataKey="Revenue" stroke="var(--chart-rev)" strokeWidth={2}
+                fill="url(#gRev)" dot={{ r: 3, strokeWidth: 2, stroke: "hsl(var(--card))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
+              <Area type="monotone" dataKey="Net profit" stroke="var(--chart-prof)" strokeWidth={2}
+                fill="url(#gProf)" dot={{ r: 3, strokeWidth: 2, stroke: "hsl(var(--card))" }} activeDot={{ r: 5 }} isAnimationActive={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex flex-wrap gap-4 mt-3 justify-center">
-          {[["Revenue ₦", "hsl(142 76% 36%)"], ["Profit ₦", "hsl(262 83% 58%)"], ["Expenses ₦", "hsl(0 84% 60%)"]].map(([name, color]) => (
-            <span key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="w-3 h-0.5 rounded" style={{ backgroundColor: color }} />
-              {name}
-            </span>
-          ))}
-        </div>
-      </div>
 
-      {/* ── Vehicles & Sales ─────────────────────────────────────────────────── */}
-      <div>
-        <SectionHeader icon={Car} title="Inventory & Sales Performance" sub="Vehicle stock levels, sales velocity and breakdown" color="text-sky-500" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          <KpiCard icon={Car} label="Total Inventory" value={String(vehicles.length)} sub={`${availableVehicles.length} available`} color="text-sky-500" />
-          <KpiCard icon={CheckCircle2} label="Vehicles Sold" value={String(soldVehicles.length)} color="text-emerald-500" />
-          <KpiCard icon={Clock} label="Avg Days to Sell" value={avgDaysToSell > 0 ? `${avgDaysToSell}d` : "—"} color="text-amber-500" />
-          <KpiCard icon={Target} label="Sales This Period" value={String(fSales.length)} color="text-violet-500" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Make Breakdown */}
-          <div className="bento-card no-hover p-5">
-            <h3 className="font-bold text-sm mb-4 flex items-center gap-2 text-foreground">
-              <PieChartIcon className="h-4 w-4 text-sky-400" /> Inventory by Make
-            </h3>
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={makeBreakdown} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--foreground)/0.05)" />
-                  <XAxis type="number" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} width={70} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="value" name="Vehicles" radius={[0, 4, 4, 0]}>
-                    {makeBreakdown.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          {/* Top Sales */}
-          <div className="bento-card no-hover p-5">
-            <h3 className="font-bold text-sm mb-4 flex items-center gap-2 text-foreground">
-              <Trophy className="h-4 w-4 text-amber-400" /> Top Sales (This Period)
-            </h3>
-            <div className="space-y-2.5">
-              {topVehicles.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-6">No sales in this period</p>
-              ) : topVehicles.map((v: any, i: number) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-foreground/5">
-                  <span className={`text-xs font-black w-6 h-6 flex items-center justify-center rounded-full ${i === 0 ? "bg-amber-500/20 text-amber-500" : i === 1 ? "bg-foreground/10 text-foreground" : "bg-foreground/5 text-muted-foreground"}`}>
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold truncate">{v.name}</p>
-                    <p className="text-[10px] text-muted-foreground">Profit: ₦{v.profit.toLocaleString()}</p>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-400 font-mono">₦{v.revenue.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Customers & Inquiries ─────────────────────────────────────────────── */}
-      <div>
-        <SectionHeader icon={Users} title="Customers & Lead Pipeline" sub="Customer growth, inquiry pipeline and conversion" color="text-fuchsia-500" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          <KpiCard icon={Users} label="Total Customers" value={String(customers.length)} sub={`+${fCustomers.length} new`} color="text-fuchsia-500" />
-          <KpiCard icon={MessageSquare} label="Total Inquiries" value={String(inquiries.length)} color="text-sky-500" />
-          <KpiCard icon={Target} label="Conversion Rate" value={`${conversionRate.toFixed(1)}%`} color={conversionRate > 30 ? "text-emerald-500" : "text-amber-500"} />
-          <KpiCard icon={Star} label="Open Leads" value={String(inquiries.filter((i: any) => i.status === "open" || i.status === "pending" || !i.status).length)} color="text-violet-500" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="bento-card no-hover p-5">
-            <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-fuchsia-400" /> Customer Acquisition (6 Months)
-            </h3>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={customersByMonth}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground)/0.05)" />
-                  <XAxis dataKey="label" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="Customers" fill="hsl(280 65% 60%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="bento-card no-hover p-5">
-            <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-              <PieChartIcon className="h-4 w-4 text-sky-400" /> Inquiry Status Breakdown
-            </h3>
-            {inquiryStatus.length > 0 ? (
-              <div className="h-[180px] flex items-center gap-4">
-                <ResponsiveContainer width="55%" height="100%">
-                  <PieChart>
-                    <Pie data={inquiryStatus} innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
-                      {inquiryStatus.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip content={<ChartTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {inquiryStatus.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1.5 text-muted-foreground capitalize">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                        {s.name}
-                      </span>
-                      <span className="font-bold">{s.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground text-center py-8">No inquiry data</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Expenses ──────────────────────────────────────────────────────────── */}
-      <div>
-        <SectionHeader icon={Receipt} title="Expense Analysis" sub="Category breakdown and cost management" color="text-red-400" />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
-          <KpiCard icon={Receipt} label="Total Expenses" value={`₦${totalExpenses.toLocaleString()}`} color="text-red-400" />
-          <KpiCard icon={CreditCard} label="Expense Entries" value={String(fExpenses.length)} color="text-orange-400" />
-          <KpiCard icon={AlertCircle} label="Expense / Revenue" value={totalRevenue > 0 ? `${((totalExpenses / totalRevenue) * 100).toFixed(1)}%` : "—"} color="text-amber-400" />
-        </div>
-        {expenseCategoryBreak.length > 0 ? (
-          <div className="bento-card no-hover p-5">
-            <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-red-400" /> Expenses by Category
-            </h3>
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={expenseCategoryBreak}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground)/0.05)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `₦${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="value" name="Expenses ₦" radius={[4, 4, 0, 0]}>
-                    {expenseCategoryBreak.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        ) : (
-          <div className="bento-card no-hover p-8 text-center">
-            <p className="text-sm text-muted-foreground">No expense data for this period.</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Run the expenses SQL migration and add expense records.</p>
+        {showTrendTable && (
+          <div className="overflow-x-auto mt-3">
+            <table className="w-full text-[12.5px] border-collapse">
+              <thead>
+                <tr className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground">
+                  <th className="text-left font-semibold py-2 px-2 border-b border-border">Month</th>
+                  <th className="text-right font-semibold py-2 px-2 border-b border-border">Revenue</th>
+                  <th className="text-right font-semibold py-2 px-2 border-b border-border">Net profit</th>
+                  <th className="text-right font-semibold py-2 px-2 border-b border-border">Expenses</th>
+                  <th className="text-right font-semibold py-2 px-2 border-b border-border">Margin</th>
+                </tr>
+              </thead>
+              <tbody className="tabular-nums">
+                {trendData.map((r: any) => (
+                  <tr key={r.label}>
+                    <td className="py-1.5 px-2 border-b border-border/60">{r.label}</td>
+                    <td className="text-right py-1.5 px-2 border-b border-border/60">₦{r.Revenue.toLocaleString()}</td>
+                    <td className="text-right py-1.5 px-2 border-b border-border/60">₦{r["Net profit"].toLocaleString()}</td>
+                    <td className="text-right py-1.5 px-2 border-b border-border/60">₦{r.Expenses.toLocaleString()}</td>
+                    <td className="text-right py-1.5 px-2 border-b border-border/60">
+                      {r.Revenue > 0 ? `${((r["Net profit"] / r.Revenue) * 100).toFixed(1)}%` : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-      </div>
+      </figure>
 
-      {/* ── Repairs & Maintenance ─────────────────────────────────────────────── */}
+      {/* ── Detail tabs ─────────────────────────────────────────────────────── */}
       <div>
-        <SectionHeader icon={Wrench} title="Repairs & Maintenance" sub="Workshop activity, job status and costs" color="text-orange-400" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-          <KpiCard icon={ClipboardList} label="Total Jobs" value={String(fRepairs.length)} color="text-orange-400" />
-          <KpiCard icon={CheckCircle2} label="Completed" value={String(fRepairs.filter((r: any) => r.status === "completed").length)} color="text-emerald-500" />
-          <KpiCard icon={Clock} label="Pending" value={String(fRepairs.filter((r: any) => r.status === "pending" || r.status === "in_progress").length)} color="text-amber-500" />
-          <KpiCard icon={DollarSign} label="Repair Revenue" value={`₦${repairRevenue.toLocaleString()}`} color="text-violet-500" />
+        <div role="tablist" aria-label="Report detail" className="flex gap-0.5 overflow-x-auto border-b border-border">
+          {tabs.map(t => (
+            <button key={t.key} role="tab" type="button"
+              aria-selected={activeTab === t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`whitespace-nowrap text-[13px] font-semibold px-3.5 py-2.5 min-h-[38px] border-b-2 transition-colors ${
+                activeTab === t.key
+                  ? "text-foreground border-[color:var(--chart-rev)]"
+                  : "text-muted-foreground border-transparent"
+              }`}>
+              {t.label}
+            </button>
+          ))}
         </div>
-        <div className="bento-card no-hover p-5">
-          <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-            <Wrench className="h-4 w-4 text-orange-400" /> Repair Job Status
-          </h3>
-          {repairStatus.length > 0 ? (
-            <div className="flex flex-wrap gap-4">
-              {repairStatus.map((s, i) => (
-                <div key={i} className="flex items-center gap-3 bento-card no-hover px-4 py-3 flex-1 min-w-[120px]">
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                  <div>
-                    <p className="text-lg font-extrabold">{s.value}</p>
-                    <p className="text-[10px] text-muted-foreground capitalize">{s.name.replace(/_/g, " ")}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground text-center py-6">No repair jobs in this period</p>
+
+        <div className="bento-card no-hover rounded-t-none border-t-0 p-4 sm:p-5">
+          {activeTab === "inventory" && (
+            <>
+              <Strip items={[
+                ["In stock", String(availableVehicles.length)],
+                ["Sold this period", String(fSales.length)],
+                ["Avg days to sell", avgDaysToSell > 0 ? String(avgDaysToSell) : "—"],
+                ["Total fleet", String(vehicles.length)],
+              ]} />
+              <h2 className="font-heading text-[15px] font-bold tracking-tight">Stock by make</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Across the whole fleet</p>
+              <BarList rows={makeBreakdown} />
+            </>
+          )}
+
+          {activeTab === "customers" && (
+            <>
+              <Strip items={[
+                ["Total customers", String(customers.length)],
+                ["New this period", String(fCustomers.length)],
+                ["Inquiries", String(fInquiries.length)],
+                ["Conversion", `${conversionRate.toFixed(1)}%`],
+              ]} />
+              <h2 className="font-heading text-[15px] font-bold tracking-tight">Inquiry pipeline</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Where this period's inquiries stand</p>
+              <BarList rows={inquiryStatus} />
+            </>
+          )}
+
+          {activeTab === "expenses" && (
+            <>
+              <Strip items={[
+                ["Total expenses", shortNaira(totalExpenses)],
+                ["Entries", String(fExpenses.length)],
+                ["Share of revenue", totalRevenue > 0 ? `${((totalExpenses / totalRevenue) * 100).toFixed(1)}%` : "—"],
+                ["Largest category", expenseCategoryBreak[0]?.name || "—"],
+              ]} />
+              <h2 className="font-heading text-[15px] font-bold tracking-tight">Expenses by category</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">{periodLabel}</p>
+              <BarList rows={expenseCategoryBreak} format={shortNaira} />
+            </>
+          )}
+
+          {activeTab === "workshop" && (
+            <>
+              <Strip items={[
+                ["Jobs logged", String(fRepairs.length)],
+                ["Pending", String(fRepairs.filter((r: any) => r.status === "pending").length)],
+                ["Completed", String(fRepairs.filter((r: any) => r.status === "completed").length)],
+                ["Repair revenue", shortNaira(repairRevenue)],
+              ]} />
+              <h2 className="font-heading text-[15px] font-bold tracking-tight">Job status</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                All workshop jobs this period · {shortNaira(totalRepairCost)} booked
+              </p>
+              <BarList rows={repairStatus} />
+            </>
+          )}
+
+          {activeTab === "documents" && (
+            <>
+              <Strip items={[
+                ["Proforma invoices", String(fQuotes.length)],
+                ["Quote → sale", fQuotes.length > 0 ? `${((fSales.length / fQuotes.length) * 100).toFixed(1)}%` : "—"],
+                ["Inspections", String(inspections.length)],
+                ["Sales recorded", String(fSales.length)],
+              ]} />
+              <h2 className="font-heading text-[15px] font-bold tracking-tight">Top sales this period</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Ranked by sale value</p>
+              <BarList rows={topVehicles.map((v: any) => ({ name: v.name, value: v.revenue }))} format={shortNaira} />
+            </>
+          )}
+
+          {activeTab === "activity" && (
+            <>
+              <Strip items={[
+                ["Logged actions", String(auditLogs.length)],
+                ["Busiest day", auditActivity.slice().sort((a: any, b: any) => b.Actions - a.Actions)[0]?.label || "—"],
+                ["Tables touched", String(auditByTable.length)],
+                ["Inspections", String(inspections.length)],
+              ]} />
+              <h2 className="font-heading text-[15px] font-bold tracking-tight">Activity by table</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Most-edited records in the audit log</p>
+              <BarList rows={auditByTable} />
+            </>
           )}
         </div>
       </div>
 
-      {/* ── Documents & Quotes ─────────────────────────────────────────────────── */}
-      <div>
-        <SectionHeader icon={FileText} title="Documents & Proforma Invoices" sub="Invoice conversion and document activity" color="text-sky-400" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KpiCard icon={FileSignature} label="Proforma Invoices" value={String(fQuotes.length)} color="text-sky-400" />
-          <KpiCard icon={FileText} label="Quote → Sales" value={String(fSales.length)} color="text-emerald-500" />
-          <KpiCard icon={ClipboardList} label="Inspections" value={String(inspections.length)} color="text-violet-500" />
-          <KpiCard icon={ShieldCheck} label="Auth. Forms" value="—" color="text-amber-500" />
-        </div>
-      </div>
-
-      {/* ── Audit Trail ──────────────────────────────────────────────────────── */}
-      <div>
-        <SectionHeader icon={ShieldCheck} title="Audit Trail & System Activity" sub="All logged user actions across the system" color="text-emerald-500" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="bento-card no-hover p-5">
-            <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-              <Activity className="h-4 w-4 text-emerald-400" /> Activity (Last 10 Days)
-            </h3>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={auditActivity}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground)/0.05)" />
-                  <XAxis dataKey="label" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Bar dataKey="Actions" fill="hsl(142 76% 36%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="bento-card no-hover p-5">
-            <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-violet-400" /> Activity by Module
-            </h3>
-            <div className="space-y-2.5">
-              {auditByTable.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-6">No audit data found</p>
-              ) : auditByTable.map((a, i) => {
-                const max = auditByTable[0]?.value || 1;
-                const pct = (a.value / max) * 100;
-                return (
-                  <div key={i} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground capitalize">{a.name.replace(/_/g, " ")}</span>
-                      <span className="font-bold">{a.value}</span>
-                    </div>
-                    <div className="h-1.5 bg-foreground/5 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Audit Logs */}
-        <div className="bento-card no-hover overflow-hidden mt-5">
-          <div className="p-4 border-b border-white/5 flex items-center justify-between">
-            <h3 className="font-bold text-sm flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-400" /> Recent Audit Entries
-            </h3>
-            <span className="text-xs text-muted-foreground">{auditLogs.length} total recorded</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-white/5 bg-foreground/5">
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Action</th>
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Module</th>
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Record ID</th>
-                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {auditLogs.slice(0, 10).map((log: any) => (
-                  <tr key={log.id} className="border-b border-white/5">
-                    <td className="px-4 py-2.5">
-                      <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
-                        log.action === "CREATE" ? "bg-emerald-500/10 text-emerald-400" :
-                        log.action === "UPDATE" ? "bg-sky-500/10 text-sky-400" :
-                        log.action === "DELETE" ? "bg-red-500/10 text-red-400" :
-                        "bg-foreground/5 text-muted-foreground"
-                      }`}>{log.action}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground capitalize">{(log.table_name || "—").replace(/_/g, " ")}</td>
-                    <td className="px-4 py-2.5 font-mono text-muted-foreground/60">{String(log.record_id || "—").slice(0, 8)}…</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{log.created_at ? format(new Date(log.created_at), "dd/MM/yy HH:mm") : "—"}</td>
-                  </tr>
-                ))}
-                {auditLogs.length === 0 && (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">No audit logs found</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* ── All Insights ──────────────────────────────────────────────────────── */}
-      <div className="bento-card no-hover p-6">
-        <SectionHeader icon={Activity} title="Full Business Insights" sub="Complete AI analysis based on all data" color="text-violet-400" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* ── Insights ────────────────────────────────────────────────────────── */}
+      <section className="bento-card no-hover p-4 sm:p-5">
+        <h2 className="font-heading text-[15px] font-bold tracking-tight">What stands out</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Generated from this period's figures</p>
+        <ul className="flex flex-col gap-2.5 mt-3.5 list-none p-0 m-0">
           {insights.map((ins, i) => <Insight key={i} {...ins} />)}
-        </div>
-      </div>
+        </ul>
+      </section>
 
-      {/* ── Report Footer ──────────────────────────────────────────────────────── */}
-      <div className="text-center text-xs text-muted-foreground/40 pb-4">
-        Lamido Cars Advanced Report — Generated {generatedAt} — {selectedMonth === "all" ? "All Time" : selectedMonth}
-      </div>
+      <p className="text-[11.5px] text-muted-foreground text-center pt-1">
+        Lamido Cars Advanced Report · {periodLabel} · generated {generatedAt}
+      </p>
     </div>
     )
   );

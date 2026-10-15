@@ -4,6 +4,15 @@
 
 @layer base {
   :root {
+    /* Chart series. Validated for colourblind separation and contrast against
+       both surfaces; see the data-viz palette. Dark steps are the same hues
+       re-stepped for the dark surface, not an inversion. */
+    --chart-rev: #2a78d6;
+    --chart-prof: #1baf7a;
+    --chart-exp: #eb6834;
+    --chart-grid: #e6e5e0;
+    --chart-ink: #85857c;
+
     --background: 210 20% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -41,6 +50,11 @@
   }
 
   .dark {
+    --chart-rev: #3987e5;
+    --chart-prof: #199e70;
+    --chart-exp: #d95926;
+    --chart-grid: #2e2e33;
+    --chart-ink: #77776f;
     --background: 0 0% 4%;
     --foreground: 210 40% 97%;
     --card: 222 47% 8%;
