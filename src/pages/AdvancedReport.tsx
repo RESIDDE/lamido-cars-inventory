@@ -67,25 +67,31 @@ function KpiCard({ icon: Icon, label, value, sub, color, delta, deltaLabel }: {
 }) {
   const up = delta !== undefined ? delta >= 0 : null;
   return (
-    <Card className="bento-card border-none shadow-xl group hover:scale-[1.01] transition-transform duration-200">
-      <CardContent className="p-5">
-        <div className="flex justify-between items-start mb-3">
-          <div className={`p-2.5 rounded-xl ${color}/10`}>
-            <Icon className={`h-5 w-5 ${color}`} />
+    // The wrapper is the hover target and never moves; the card scales inside it.
+    // Scaling the same element that :hover is tested against moves the hit area
+    // under the pointer, so the card can flip in and out of :hover and visibly
+    // flicker. Dashboard already uses this group pattern and does not flicker.
+    <div className="group h-full">
+      <Card className="bento-card border-none shadow-xl h-full transition-transform duration-200 group-hover:scale-[1.01]">
+        <CardContent className="p-5">
+          <div className="flex justify-between items-start mb-3">
+            <div className={`p-2.5 rounded-xl ${color}/10`}>
+              <Icon className={`h-5 w-5 ${color}`} />
+            </div>
+            {delta !== undefined && (
+              <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${up ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
+                {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                {Math.abs(delta).toFixed(1)}%
+              </span>
+            )}
           </div>
-          {delta !== undefined && (
-            <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${up ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
-              {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-              {Math.abs(delta).toFixed(1)}%
-            </span>
-          )}
-        </div>
-        <p className="text-2xl font-extrabold tracking-tight">{value}</p>
-        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-1">{label}</p>
-        {sub && <p className="text-[11px] text-muted-foreground/70 mt-1">{sub}</p>}
-        {deltaLabel && <p className="text-[11px] text-muted-foreground/60 mt-0.5">{deltaLabel}</p>}
-      </CardContent>
-    </Card>
+          <p className="text-2xl font-extrabold tracking-tight">{value}</p>
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-1">{label}</p>
+          {sub && <p className="text-[11px] text-muted-foreground/70 mt-1">{sub}</p>}
+          {deltaLabel && <p className="text-[11px] text-muted-foreground/60 mt-0.5">{deltaLabel}</p>}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
