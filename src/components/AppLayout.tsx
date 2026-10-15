@@ -61,7 +61,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               it, content that sits near the scroll boundary makes the bar appear and
               disappear, and each toggle changes the available width - which reflows the
               page and resizes every chart. That feedback loop reads as flickering. */}
-          <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-auto [scrollbar-gutter:stable] animate-fade-up custom-scrollbar">
+          {/* No entrance animation on the scroll container itself: fade-up animates
+              translateY, and animating the transform of an overflow:auto element
+              changes its scrollHeight every frame. Anything watching the pane with a
+              ResizeObserver - every Recharts chart - then redraws on every one of
+              those frames. Each page root already runs its own fade-up. */}
+          <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-auto [scrollbar-gutter:stable] custom-scrollbar">
             <div className="mx-auto max-w-7xl h-full w-full">
               {children}
             </div>

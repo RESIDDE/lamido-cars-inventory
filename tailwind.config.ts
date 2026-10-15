@@ -93,6 +93,12 @@ export default {
           "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        // Opacity only. A translate on an entrance animation changes the scrollable
+        // height every frame, which makes every chart in the pane re-measure.
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
         "slide-in-right": {
           "0%": { opacity: "0", transform: "translateX(20px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
@@ -106,6 +112,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-up": "fade-up 0.5s ease-out",
+        "fade-in": "fade-in 0.4s ease-out",
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "fade-down": "fade-down 0.5s ease-out",
       },

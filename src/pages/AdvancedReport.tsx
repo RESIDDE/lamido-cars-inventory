@@ -148,7 +148,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [], isLoading: cuLoading } = useQuery({
     queryKey: ["report_customers", refreshKey],
     queryFn: async () => {
       const { data } = await supabase.from("customers").select("*").order("created_at", { ascending: false });
@@ -156,7 +156,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: sales = [] } = useQuery({
+  const { data: sales = [], isLoading: saLoading } = useQuery({
     queryKey: ["report_sales", refreshKey],
     queryFn: async () => {
       const { data } = await supabase.from("sales").select("*, vehicles(*), customers(*), sale_vehicles(*, vehicles(*))").order("sale_date", { ascending: false });
@@ -164,7 +164,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: inquiries = [] } = useQuery({
+  const { data: inquiries = [], isLoading: inLoading } = useQuery({
     queryKey: ["report_inquiries", refreshKey],
     queryFn: async () => {
       const { data } = await supabase.from("inquiries").select("*").order("created_at", { ascending: false });
@@ -172,7 +172,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: repairs = [] } = useQuery({
+  const { data: repairs = [], isLoading: reLoading } = useQuery({
     queryKey: ["report_repairs", refreshKey],
     queryFn: async () => {
       const { data } = await (supabase as any).from("repairs").select("*").order("created_at", { ascending: false });
@@ -180,7 +180,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [], isLoading: exLoading } = useQuery({
     queryKey: ["report_expenses", refreshKey],
     queryFn: async () => {
       const { data } = await (supabase as any).from("expenses").select("*").order("created_at", { ascending: false });
@@ -188,7 +188,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: quotes = [] } = useQuery({
+  const { data: quotes = [], isLoading: quLoading } = useQuery({
     queryKey: ["report_quotes", refreshKey],
     queryFn: async () => {
       const { data } = await (supabase as any).from("performance_quotes").select("*").order("created_at", { ascending: false });
@@ -196,7 +196,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: auditLogs = [] } = useQuery({
+  const { data: auditLogs = [], isLoading: auLoading } = useQuery({
     queryKey: ["report_audit", refreshKey],
     queryFn: async () => {
       const { data } = await (supabase as any).from("audit_logs").select("*").order("created_at", { ascending: false }).limit(200);
@@ -204,7 +204,7 @@ export default function AdvancedReport() {
     },
   });
 
-  const { data: inspections = [] } = useQuery({
+  const { data: inspections = [], isLoading: isLoadingInsp } = useQuery({
     queryKey: ["report_inspections", refreshKey],
     queryFn: async () => {
       const { data } = await (supabase as any).from("inspections").select("*").order("created_at", { ascending: false });
@@ -212,7 +212,11 @@ export default function AdvancedReport() {
     },
   });
 
-  const isLoading = vLoading;
+  // Nine independent queries land at different times. Rendering between them
+  // repainted the whole report on every arrival, shifting cards and forcing each
+  // chart to re-measure and redraw. Paint once, when the data is in.
+  const isLoading = vLoading || cuLoading || saLoading || inLoading || reLoading
+    || exLoading || quLoading || auLoading || isLoadingInsp;
 
   // ── Date Filter Helper ────────────────────────────────────────────────────
   const inMonth = (dateStr: string | null | undefined) => {
@@ -638,7 +642,13 @@ export default function AdvancedReport() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-up pb-16 max-w-7xl mx-auto">
+    isLoading ? (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-muted-foreground">
+        <RefreshCw className="h-8 w-8 animate-spin opacity-60" />
+        <p className="text-sm font-semibold">Building report…</p>
+      </div>
+    ) : (
+    <div className="space-y-8 animate-fade-in pb-16 max-w-7xl mx-auto">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -1073,5 +1083,6 @@ export default function AdvancedReport() {
         Lamido Cars Advanced Report — Generated {generatedAt} — {selectedMonth === "all" ? "All Time" : selectedMonth}
       </div>
     </div>
+    )
   );
 }
