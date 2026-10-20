@@ -52,6 +52,10 @@ const splitConditionFromTitle = (title: string): { title: string; condition: str
   return { title, condition: '' };
 };
 
+// Addresses are entered in a textarea, so keep any line breaks when printing.
+const addressLines = (value?: string | null) =>
+  (value || "").trim().split(/\r?\n/).filter(Boolean).join("<br/>");
+
 const renderVehicleSpecHTML = (item: any) => {
   const rawDesc = item.vehicle_description;
   const v = item.vehicles;
@@ -551,6 +555,16 @@ export default function PerformanceQuotes() {
           <span class="field-label">Contact Phone:</span>
           <span class="field-value">${quote.customers.phone}</span>
         </div>` : ''}
+        ${quote.customers?.email ? `
+        <div class="field-row">
+          <span class="field-label">Email:</span>
+          <span class="field-value">${quote.customers.email}</span>
+        </div>` : ''}
+        ${quote.customers?.address ? `
+        <div class="field-row">
+          <span class="field-label">Address:</span>
+          <span class="field-value">${addressLines(quote.customers.address)}</span>
+        </div>` : ''}
       </div>
 
       <div class="main-container">
@@ -725,6 +739,8 @@ export default function PerformanceQuotes() {
       <p style="font-weight: 900;">PREPARED FOR:</p>
       <p><strong>${quote.customers?.name || "—"}</strong></p>
       ${quote.customers?.phone ? `<p>Tel: ${quote.customers.phone}</p>` : ''}
+      ${quote.customers?.email ? `<p>Email: ${quote.customers.email}</p>` : ''}
+      ${quote.customers?.address ? `<p>Address: ${addressLines(quote.customers.address)}</p>` : ''}
     </div>
 
     <div class="main-container">
